@@ -1,0 +1,792 @@
+/* ---------------------------------------------------------------------- */
+/*  Eco · Calorie Basis                                                   */
+/*  Aesthetic: field-report. Warm paper, forest-green ink, mono-data.     */
+/* ---------------------------------------------------------------------- */
+
+:root {
+  /* paper */
+  --paper: #f3efe4;
+  --paper-2: #eae4d3;
+  --paper-3: #ddd5bf;
+  /* ink */
+  --ink: #1a1f1a;
+  --ink-2: #3d4639;
+  --ink-3: #6b7264;
+  /* accent */
+  --forest: #2d4a2a;
+  --forest-2: #4a6b47;
+  --rust: #9a4a2a;
+  --amber: #b58540;
+  /* type */
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --display: "Fraunces", Georgia, "Times New Roman", serif;
+  /* rhythm */
+  --rule: 1px solid var(--ink);
+  --hair: 1px solid var(--ink-3);
+  --rule-dash: 1px dashed var(--ink-3);
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  /* subtle noise + vertical ticks like ruled paper */
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 23px,
+      rgba(26, 31, 26, 0.03) 24px
+    ),
+    radial-gradient(rgba(26, 31, 26, 0.015) 1px, transparent 1px);
+  background-size: 24px 24px, 3px 3px;
+  min-height: 100vh;
+}
+
+.app {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 48px 40px 96px;
+}
+
+/* ---------- masthead ---------- */
+
+.masthead {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  padding-bottom: 18px;
+  border-bottom: 2px solid var(--ink);
+  margin-bottom: 8px;
+}
+.masthead__title {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 54px;
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+  color: var(--forest);
+}
+.masthead__title em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--ink);
+}
+.masthead__meta {
+  text-align: right;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+.masthead__rule {
+  border-top: var(--hair);
+  margin-bottom: 28px;
+  margin-top: 2px;
+}
+
+/* ---------- section header ---------- */
+
+.section-label {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 32px 0 10px;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.section-label::after {
+  content: "";
+  flex: 1;
+  border-top: var(--hair);
+  transform: translateY(-3px);
+}
+.section-label__num {
+  color: var(--forest);
+  font-weight: 700;
+}
+
+/* ---------- picker ---------- */
+
+.picker {
+  position: relative;
+}
+.picker__input {
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--paper-2);
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 16px;
+  letter-spacing: 0.01em;
+  outline: none;
+  transition: border-color 120ms;
+}
+.picker__input:focus {
+  border-color: var(--forest);
+  background: #fff;
+}
+.picker__results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-top: none;
+  max-height: 320px;
+  overflow-y: auto;
+  z-index: 10;
+}
+.picker__result {
+  padding: 8px 16px;
+  cursor: pointer;
+  border-bottom: var(--hair);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+.picker__result:last-child { border-bottom: none; }
+.picker__result:hover,
+.picker__result--active { background: var(--paper-2); }
+.picker__result__id {
+  color: var(--ink-3);
+  font-size: 11px;
+}
+
+/* ---------- totals banner ---------- */
+
+.totals {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 0;
+  margin-top: 14px;
+  border: 2px solid var(--ink);
+  background: var(--paper-2);
+}
+.totals__cell {
+  padding: 16px 18px;
+  border-right: var(--hair);
+}
+.totals__cell:last-child { border-right: none; }
+.totals__label {
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 6px;
+}
+.totals__value {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 28px;
+  line-height: 1;
+  color: var(--forest);
+  letter-spacing: -0.01em;
+}
+.totals__sub {
+  font-size: 11px;
+  color: var(--ink-2);
+  margin-top: 4px;
+}
+
+/* ---------- breakdown tree ---------- */
+
+.tree {
+  margin-top: 10px;
+  border-top: var(--rule);
+  border-bottom: var(--rule);
+  background: var(--paper);
+}
+.tree__row {
+  display: grid;
+  grid-template-columns: 1fr 100px 120px 50px;
+  align-items: baseline;
+  padding: 7px 0;
+  border-bottom: var(--hair);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.tree__row:hover { background: var(--paper-2); }
+.tree__row:last-child { border-bottom: none; }
+.tree__row--raw { background: rgba(181, 133, 64, 0.07); }
+.tree__row--cycle,
+.tree__row--missing { background: rgba(154, 74, 42, 0.08); }
+.tree__label {
+  padding-left: calc(12px + var(--depth, 0) * 22px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.tree__caret {
+  display: inline-block;
+  width: 12px;
+  color: var(--ink-3);
+  font-size: 9px;
+  flex: none;
+}
+.tree__caret--leaf { visibility: hidden; }
+.tree__qty {
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+  margin-right: 6px;
+  flex: none;
+}
+.tree__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tree__tag {
+  color: var(--forest-2);
+  font-size: 10.5px;
+  margin-left: 6px;
+  white-space: nowrap;
+}
+.tree__labor,
+.tree__cal {
+  text-align: right;
+  padding-right: 16px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+}
+.tree__cal { color: var(--ink); font-weight: 500; }
+.tree__pct {
+  text-align: right;
+  padding-right: 18px;
+  color: var(--ink-3);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.kind-badge {
+  display: inline-block;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border: 1px solid var(--ink-3);
+  color: var(--ink-3);
+  margin-right: 6px;
+  flex: none;
+}
+.kind-badge--raw { color: var(--rust); border-color: var(--rust); }
+.kind-badge--cycle, .kind-badge--missing { color: var(--rust); border-color: var(--rust); }
+
+.tree__head {
+  display: grid;
+  grid-template-columns: 1fr 100px 120px 50px;
+  padding: 6px 0 6px 12px;
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  border-bottom: 1px solid var(--ink);
+  background: var(--paper-2);
+}
+.tree__head > *:not(:first-child) {
+  text-align: right;
+  padding-right: 16px;
+}
+
+/* ---------- ambiguity overrides ---------- */
+
+.overrides {
+  margin-top: 10px;
+}
+.overrides__empty {
+  font-size: 11px;
+  color: var(--ink-3);
+  padding: 12px 0;
+  font-style: italic;
+}
+.override {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: var(--rule-dash);
+  align-items: center;
+}
+.override:last-child { border-bottom: none; }
+.override__label {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.override__label strong {
+  display: block;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--forest);
+  font-size: 13px;
+  margin-top: 2px;
+}
+.override select {
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 6px 10px;
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  outline: none;
+  min-width: 240px;
+  cursor: pointer;
+}
+.override select:focus {
+  border-color: var(--forest);
+}
+.override__pinned {
+  display: inline-block;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  margin-left: 8px;
+  background: var(--forest);
+  color: var(--paper);
+  vertical-align: middle;
+}
+.override--dimmed {
+  opacity: 0.55;
+}
+.override--dimmed:hover,
+.override--dimmed:focus-within {
+  opacity: 1;
+}
+.overrides__divider {
+  margin: 18px 0 6px;
+  padding-top: 10px;
+  border-top: var(--rule-dash);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* ---------- flat raw inputs ---------- */
+
+.flat {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0 24px;
+  border-top: var(--hair);
+  border-bottom: var(--hair);
+  padding: 6px 0;
+}
+.flat__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 5px 0;
+  border-bottom: var(--rule-dash);
+  font-size: 12.5px;
+}
+.flat__qty {
+  color: var(--forest);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  margin-right: 10px;
+}
+.flat__name {
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- empty state ---------- */
+
+.empty {
+  padding: 60px 0;
+  text-align: center;
+  color: var(--ink-3);
+  border: var(--rule-dash);
+  margin-top: 20px;
+}
+.empty__title {
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 22px;
+  color: var(--ink-2);
+  margin-bottom: 6px;
+}
+
+.footer {
+  margin-top: 48px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  display: flex;
+  justify-content: space-between;
+}
+
+/* ---------- view tabs ---------- */
+
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--ink);
+  margin-top: 8px;
+}
+.tab {
+  padding: 10px 20px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: color 120ms, border-color 120ms;
+}
+.tab:hover { color: var(--ink); }
+.tab--active {
+  color: var(--forest);
+  border-bottom-color: var(--forest);
+  font-weight: 500;
+}
+
+/* ---------- diagram (assembly-line tree) ---------- */
+
+.diagram {
+  position: relative;
+  padding: 36px 20px 36px;
+  background: var(--paper);
+  border-left: var(--hair);
+  border-right: var(--hair);
+  /* Self-contained scroll region so the horizontal scrollbar always sits at
+     the bottom edge of the visible diagram viewport — not somewhere hundreds
+     of pixels down the page where a long tree's bottom card actually ends.
+     The subtracted pixels reserve room for the header/picker above and the
+     sticky target banner below, so the scrollbar lives inside the viewport. */
+  overflow: auto;
+  max-height: calc(100vh - 460px);
+  min-height: 260px;
+  /* Isolate so descendant z-index values compose locally. Lets us layer
+     wires (2), unhighlighted cards (1), highlighted cards (3) cleanly
+     without the per-tier stacking contexts the cards are nested in. */
+  isolation: isolate;
+  /* Force the scrollbar to render as a classic always-visible bar (instead
+     of macOS/iOS auto-hide overlay) when content overflows, so users can
+     see at a glance that more of the analysis extends off-screen. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-3) var(--paper-2);
+}
+.diagram::-webkit-scrollbar {
+  height: 10px;
+}
+.diagram::-webkit-scrollbar-track {
+  background: var(--paper-2);
+  border-top: 1px solid var(--paper-3);
+}
+.diagram::-webkit-scrollbar-thumb {
+  background: var(--ink-3);
+  border-radius: 5px;
+}
+.diagram::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-2);
+}
+.diagram__wires {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* Above cards (tier z-index: 1) so deep-skip edges and their qty badges
+     don't get hidden by intermediate-tier cards. Wires use pointer-events: none
+     so interaction with cards is unaffected. */
+  z-index: 2;
+}
+.diagram__wire {
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  transition: stroke-width 120ms, stroke 120ms;
+}
+.diagram__wire--highlighted {
+  /* ~2× base stroke-width, plus a stronger ink tone so the traced path reads
+     as unmistakably foregrounded against the muted background wires. */
+  stroke-width: 2.5;
+  stroke: var(--ink);
+}
+.diagram__wire-badge {
+  fill: var(--paper);
+  stroke: var(--ink-3);
+  stroke-width: 1;
+}
+.diagram__wire-badge--highlighted {
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+.diagram__wire-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  fill: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.diagram__wire-label--highlighted {
+  fill: var(--ink);
+  font-weight: 700;
+}
+
+.diagram__tier {
+  position: relative;
+  /* No z-index here: tiers must NOT create their own stacking contexts,
+     otherwise a highlighted card inside can't reach above the wire SVG. */
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 24px;
+  /* Deep vertical gutter: leaves room for horizontal wire lanes to sit
+     cleanly mid-gutter, and stacked gutters read as a regular grid. */
+  margin-bottom: 88px;
+  align-items: start;
+}
+.diagram__tier:last-child { margin-bottom: 0; }
+.diagram__tier-label {
+  padding-top: 18px;
+  text-align: right;
+  font-size: 9.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  border-top: 1px solid var(--ink-3);
+  border-right: 1px solid var(--ink-3);
+  padding-right: 6px;
+  padding-bottom: 6px;
+  align-self: stretch;
+  position: sticky;
+  left: 0;
+  background: var(--paper);
+  z-index: 2;
+}
+.diagram__tier--raw .diagram__tier-label { color: var(--rust); border-color: var(--rust); }
+.diagram__tier--target .diagram__tier-label { color: var(--forest); border-color: var(--forest); font-weight: 600; }
+
+.diagram__tier-nodes {
+  /* Grid so cards snap to fixed column slots — predictable x positions
+     make wire routing feel like an engineering schematic on graph paper. */
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 240px;
+  gap: 14px 56px;
+  align-items: start;
+  padding-top: 6px;
+}
+
+/* ---------- node card ---------- */
+
+.card {
+  position: relative;
+  z-index: 1;
+  background: var(--paper-2);
+  border: 1.5px solid var(--ink);
+  /* Fills its grid column; min-width: 0 so it can't push the column wider
+     when a long recipe name would otherwise force min-content sizing. */
+  min-width: 0;
+  width: 100%;
+  max-width: 240px;
+  cursor: pointer;
+  transition: outline-width 120ms;
+  padding: 9px 11px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 2px 2px 0 rgba(26, 31, 26, 0.08);
+}
+.card--raw {
+  background: #f6ecd6;
+  border-color: var(--rust);
+}
+.card--cycle, .card--missing {
+  background: #f5d8cc;
+  border-color: var(--rust);
+}
+.card--recipe {
+  /* default paper-2 */
+}
+.card--highlighted {
+  /* ~2× base border weight (1.5px → 3px). Outline instead of border-width so
+     the card's own dimensions don't shift and disturb the grid when selected.
+     Offset draws the outline inset over the existing border so it reads as a
+     single cleaner edge rather than a nested frame. */
+  outline: 3px solid var(--ink);
+  outline-offset: -1.5px;
+  box-shadow: 2px 2px 0 rgba(26, 31, 26, 0.18);
+  /* Above the wire SVG (z-index: 2) so unrelated wires don't slice across
+     the selected card's outline. */
+  z-index: 3;
+}
+.card__head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  border-bottom: 1px dashed var(--ink-3);
+  padding-bottom: 5px;
+  min-width: 0;
+}
+.card__qty {
+  font-variant-numeric: tabular-nums;
+  color: var(--forest);
+  font-weight: 600;
+  font-size: 13px;
+  flex: none;
+}
+.card--raw .card__qty { color: var(--rust); }
+.card__name {
+  font-family: var(--display);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 11px;
+}
+.card__recipe {
+  color: var(--ink-2);
+  font-size: 11px;
+}
+.card__recipe--raw {
+  color: var(--rust);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 9.5px;
+}
+.card__tag-trace {
+  color: var(--ink-3);
+  font-size: 10px;
+  font-style: italic;
+}
+.card__field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.card__field-label {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.card__field select {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 3px 6px;
+  background: var(--paper);
+  border: 1px solid var(--ink-3);
+  color: var(--ink);
+  cursor: pointer;
+  outline: none;
+  width: 100%;
+}
+.card__field select:hover { border-color: var(--forest); }
+.card__field select:focus { border-color: var(--forest); }
+.card__table {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  background: var(--paper);
+  padding: 2px 6px;
+  border: 1px solid var(--paper-3);
+  align-self: flex-start;
+}
+.card__foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 4px;
+  padding-top: 4px;
+  border-top: 1px dashed var(--ink-3);
+  margin-top: auto;
+  font-variant-numeric: tabular-nums;
+}
+.card__cal {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 17px;
+  color: var(--forest);
+  line-height: 1;
+}
+.card__cal-label {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.card--raw .card__cal { color: var(--rust); }
+
+/* ---------- sticky target banner at bottom of viewport ---------- */
+
+.sticky-target {
+  position: sticky;
+  bottom: 0;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 14px 24px;
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 28px;
+  align-items: baseline;
+  margin: 24px -40px 0;
+  border-top: 2px solid var(--ink);
+  z-index: 50;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+}
+.sticky-target__name {
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.sticky-target__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: right;
+}
+.sticky-target__label {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--paper-3);
+}
+.sticky-target__value {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 20px;
+  color: var(--paper);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}

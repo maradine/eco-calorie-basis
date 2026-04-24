@@ -1,0 +1,19 @@
+node_modules/
+dist/
+.vite/
+*.log
+.DS_Store
+
+# generated data - regenerate from scripts/
+scripts/recipes.json
+scripts/tags.json
+
+# editor
+.vscode/
+.idea/
+
+# build cache
+tsconfig.tsbuildinfo
+
+# local dev tool config
+.claude/
