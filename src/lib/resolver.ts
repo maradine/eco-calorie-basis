@@ -5,6 +5,20 @@ import type { Choices, EcoData, Recipe, TreeNode } from "./types";
 // tools. Overridable per-item via the second arg to Resolver.
 export const DEFAULT_RAW_COST = 20;
 
+// Items that are gatherable from the world AND have producing recipes in the
+// data — Eco's autogen only captures the recipes, so without this list sand
+// (SandConcentrate, rocker box) would always resolve as a crafted chain even
+// when the seller just digs a sand block. Gather is the default when in this
+// set; pinning a specific recipe via choices["item:X"] switches behaviour.
+// If a new dual-mode item shows up, add it here.
+export const GATHERABLE_ITEMS: ReadonlySet<string> = new Set([
+  "SandItem",
+  "DirtItem",
+]);
+// Sentinel choice value: choices["item:SandItem"] = "__gather__" forces
+// the raw-harvest branch for a gatherable item.
+export const GATHER_CHOICE = "__gather__";
+
 export interface ResolveOptions {
   choices?: Choices;
   rawCosts?: Record<string, number>;
@@ -59,14 +73,23 @@ export class Resolver {
       } else {
         const overrideKey = `item:${item}`;
         const chosen = this.choices[overrideKey];
-        // Sticky overrides: respect the user's choice even if it would
-        // produce a non-optimal path. If they haven't chosen, pick the
-        // alphabetically-first recipe ID — stable, obvious, user-overridable.
-        const recipeId =
-          chosen && producers.includes(chosen)
-            ? chosen
-            : [...producers].sort()[0];
-        node = this.resolveRecipe(recipeId, item);
+        const gatherable = GATHERABLE_ITEMS.has(item);
+        // Gatherable-and-craftable items default to gather — sellers almost
+        // always dig sand/dirt out of the world rather than spin up a rocker
+        // box. Pinning a specific recipe via the override switches back.
+        if (gatherable && (!chosen || chosen === GATHER_CHOICE)) {
+          const cost = this.rawCosts[item] ?? DEFAULT_RAW_COST;
+          node = { kind: "raw", item, qty: 1, totalCalories: cost };
+        } else {
+          // Sticky overrides: respect the user's choice even if it would
+          // produce a non-optimal path. If they haven't chosen, pick the
+          // alphabetically-first recipe ID — stable, obvious, user-overridable.
+          const recipeId =
+            chosen && producers.includes(chosen)
+              ? chosen
+              : [...producers].sort()[0];
+          node = this.resolveRecipe(recipeId, item);
+        }
       }
 
       this.memo.set(item, node);
@@ -212,21 +235,30 @@ export function findAmbiguities(
     const producers = data.producers[item] ?? [];
     if (producers.length === 0) return; // raw harvest, no decision here
 
-    // Multi-producer ambiguity
-    if (producers.length > 1) {
+    const gatherable = GATHERABLE_ITEMS.has(item);
+    // A gatherable item is a decision point even with one producer — the
+    // user is choosing gather vs. that one recipe. A multi-producer item
+    // is always a decision. Gather is listed first in the options.
+    if (producers.length > 1 || gatherable) {
       const key = `item:${item}`;
       if (!seenKeys.has(key)) {
         seenKeys.add(key);
+        const options = gatherable
+          ? [GATHER_CHOICE, ...[...producers].sort()]
+          : [...producers].sort();
+        const override = choices[key];
         const chosen =
-          (choices[key] && producers.includes(choices[key]))
-            ? choices[key]
-            : [...producers].sort()[0];
+          override && options.includes(override)
+            ? override
+            : gatherable
+              ? GATHER_CHOICE
+              : options[0];
         out.push({
           key,
           kind: "multi-producer",
           item,
           chosen,
-          options: [...producers].sort(),
+          options,
           onChosenPath: onPathItems.has(item),
         });
       }
@@ -309,9 +341,15 @@ function walkChosenPath(
   if (producers.length === 0) return;
 
   const key = `item:${target}`;
+  const override = choices[key];
+  // Gatherable items default to gather; walking a gather branch stops here
+  // (no ingredients to follow).
+  if (GATHERABLE_ITEMS.has(target) && (!override || override === GATHER_CHOICE)) {
+    return;
+  }
   const chosenRecipe =
-    (choices[key] && producers.includes(choices[key]))
-      ? choices[key]
+    (override && producers.includes(override))
+      ? override
       : [...producers].sort()[0];
   outRecipes.add(chosenRecipe);
 

@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { buildDiagram } from "../lib/resolver";
+import { buildDiagram, GATHERABLE_ITEMS, GATHER_CHOICE } from "../lib/resolver";
 import type { Choices, EcoData, TreeNode } from "../lib/types";
 
 interface Props {
@@ -342,7 +342,14 @@ function Card({
   const name = data.items[node.item] ?? node.item;
 
   const producers = data.producers[node.item] ?? [];
-  const isMultiProducer = node.kind === "recipe" && producers.length > 1;
+  const isGatherable = GATHERABLE_ITEMS.has(node.item);
+  // Decision point: multiple producers, OR gatherable (gather vs. any recipe).
+  // Gathered raw cards still need the dropdown so the user can switch back.
+  const hasDecision = producers.length > 1 || (isGatherable && producers.length > 0);
+  // Currently-selected dropdown value: GATHER_CHOICE when resolved as raw
+  // for a gatherable item, else the recipe id.
+  const currentChoice =
+    node.kind === "raw" && isGatherable ? GATHER_CHOICE : node.recipeId ?? "";
 
   // Determine whether this recipe's ingredients include any ambiguous tags.
   const tagAmbiguities = useMemo(() => {
@@ -391,15 +398,18 @@ function Card({
         <div className="card__name">{name}</div>
       </div>
 
-      {node.kind === "recipe" && (
+      {(node.kind === "recipe" || node.kind === "raw") && (
         <div className="card__body">
-          {isMultiProducer ? (
+          {hasDecision ? (
             <label className="card__field">
               <span className="card__field-label">recipe</span>
               <select
-                value={node.recipeId}
+                value={currentChoice}
                 onChange={(e) => setChoice(`item:${node.item}`, e.target.value)}
               >
+                {isGatherable && (
+                  <option value={GATHER_CHOICE}>Gather (raw harvest)</option>
+                )}
                 {[...producers].sort().map((opt) => {
                   const recipe = data.recipes.find((r) => r.id === opt);
                   const tableLabel = recipe?.table ? humanizeTable(recipe.table) : null;
@@ -411,36 +421,34 @@ function Card({
                 })}
               </select>
             </label>
-          ) : (
+          ) : node.kind === "recipe" ? (
             <div className="card__recipe">via {node.recipeId}</div>
+          ) : (
+            <div className="card__recipe card__recipe--raw">raw harvest</div>
           )}
 
-          {tagAmbiguities.map((amb) => (
-            <label className="card__field" key={amb.tag}>
-              <span className="card__field-label">{amb.tag}</span>
-              <select
-                value={choices[`tag:${amb.tag}`] ?? [...amb.options].sort()[0]}
-                onChange={(e) => setChoice(`tag:${amb.tag}`, e.target.value)}
-              >
-                {[...amb.options].sort().map((opt) => (
-                  <option key={opt} value={opt}>
-                    {data.items[opt] ?? opt}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ))}
+          {node.kind === "recipe" &&
+            tagAmbiguities.map((amb) => (
+              <label className="card__field" key={amb.tag}>
+                <span className="card__field-label">{amb.tag}</span>
+                <select
+                  value={choices[`tag:${amb.tag}`] ?? [...amb.options].sort()[0]}
+                  onChange={(e) => setChoice(`tag:${amb.tag}`, e.target.value)}
+                >
+                  {[...amb.options].sort().map((opt) => (
+                    <option key={opt} value={opt}>
+                      {data.items[opt] ?? opt}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ))}
 
-          {diagNode.table && (
+          {node.kind === "recipe" && diagNode.table && (
             <div className="card__table">{humanizeTable(diagNode.table)}</div>
           )}
-        </div>
-      )}
 
-      {node.kind === "raw" && (
-        <div className="card__body">
-          <div className="card__recipe card__recipe--raw">raw harvest</div>
-          {node.tagResolvedTo && (
+          {node.kind === "raw" && node.tagResolvedTo && (
             <div className="card__tag-trace">{node.tagResolvedTo}</div>
           )}
         </div>
