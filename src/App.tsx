@@ -53,7 +53,7 @@ export default function App() {
         </h1>
         <div className="masthead__meta">
           Field Tool · Eco<br />
-          v0.2 · Level 0 · Base Costs
+          {__BUILD_ID__} · Level 0 · Base Costs
         </div>
       </header>
       <div className="masthead__rule" />
