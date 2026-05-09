@@ -14,6 +14,7 @@ export default function App() {
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const [qty, setQty] = useState<number>(1);
   const [choices, setChoices] = useState<Choices>({});
+  const [rawCosts, setRawCosts] = useState<Record<string, number>>({});
   const [view, setView] = useState<ViewMode>("diagram");
 
   useEffect(() => {
@@ -29,8 +30,8 @@ export default function App() {
 
   const resolver = useMemo(() => {
     if (!data) return null;
-    return new Resolver(data, { choices });
-  }, [data, choices]);
+    return new Resolver(data, { choices, rawCosts });
+  }, [data, choices, rawCosts]);
 
   const tree: TreeNode | null = useMemo(() => {
     if (!resolver || !selectedItem) return null;
@@ -114,6 +115,8 @@ export default function App() {
                   data={data}
                   choices={choices}
                   onChoicesChange={setChoices}
+                  rawCosts={rawCosts}
+                  onRawCostsChange={setRawCosts}
                 />
               ) : (
                 <Tree tree={tree} data={data} />

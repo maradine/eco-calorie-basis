@@ -699,7 +699,8 @@ body {
   text-transform: uppercase;
   color: var(--ink-3);
 }
-.card__field select {
+.card__field select,
+.card__field input {
   font-family: var(--mono);
   font-size: 11px;
   padding: 3px 6px;
@@ -710,8 +711,14 @@ body {
   outline: none;
   width: 100%;
 }
-.card__field select:hover { border-color: var(--forest); }
-.card__field select:focus { border-color: var(--forest); }
+.card__field input {
+  cursor: text;
+  font-variant-numeric: tabular-nums;
+}
+.card__field select:hover,
+.card__field input:hover { border-color: var(--forest); }
+.card__field select:focus,
+.card__field input:focus { border-color: var(--forest); }
 .card__table {
   font-size: 9px;
   letter-spacing: 0.1em;

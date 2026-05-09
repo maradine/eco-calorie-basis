@@ -1,5 +1,10 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { buildDiagram, GATHERABLE_ITEMS, GATHER_CHOICE } from "../lib/resolver";
+import {
+  buildDiagram,
+  DEFAULT_RAW_COST,
+  GATHERABLE_ITEMS,
+  GATHER_CHOICE,
+} from "../lib/resolver";
 import type { Choices, EcoData, TreeNode } from "../lib/types";
 
 interface Props {
@@ -7,6 +12,8 @@ interface Props {
   data: EcoData;
   choices: Choices;
   onChoicesChange: (choices: Choices) => void;
+  rawCosts: Record<string, number>;
+  onRawCostsChange: (costs: Record<string, number>) => void;
 }
 
 /**
@@ -18,7 +25,14 @@ interface Props {
  * render, we measure each card's actual position and paint SVG connectors
  * in a single absolutely-positioned overlay sized to the full grid.
  */
-export function Diagram({ tree, data, choices, onChoicesChange }: Props) {
+export function Diagram({
+  tree,
+  data,
+  choices,
+  onChoicesChange,
+  rawCosts,
+  onRawCostsChange,
+}: Props) {
   const layout = useMemo(() => buildDiagram(tree, data), [tree, data]);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -304,6 +318,8 @@ export function Diagram({ tree, data, choices, onChoicesChange }: Props) {
                 data={data}
                 choices={choices}
                 onChoicesChange={onChoicesChange}
+                rawCosts={rawCosts}
+                onRawCostsChange={onRawCostsChange}
                 isHighlighted={highlightedId === dn.id}
                 onToggleHighlight={() =>
                   setHighlightedId((prev) => (prev === dn.id ? null : dn.id))
@@ -326,6 +342,8 @@ function Card({
   data,
   choices,
   onChoicesChange,
+  rawCosts,
+  onRawCostsChange,
   isHighlighted,
   onToggleHighlight,
   registerRef,
@@ -334,6 +352,8 @@ function Card({
   data: EcoData;
   choices: Choices;
   onChoicesChange: (c: Choices) => void;
+  rawCosts: Record<string, number>;
+  onRawCostsChange: (c: Record<string, number>) => void;
   isHighlighted: boolean;
   onToggleHighlight: () => void;
   registerRef: (el: HTMLDivElement | null) => void;
@@ -450,6 +470,30 @@ function Card({
 
           {node.kind === "raw" && node.tagResolvedTo && (
             <div className="card__tag-trace">{node.tagResolvedTo}</div>
+          )}
+
+          {node.kind === "raw" && (
+            <label className="card__field">
+              <span className="card__field-label">cal / unit</span>
+              <input
+                type="number"
+                min={0}
+                step="0.1"
+                value={rawCosts[node.item] ?? DEFAULT_RAW_COST}
+                onChange={(e) => {
+                  const next = { ...rawCosts };
+                  if (e.target.value === "") {
+                    delete next[node.item];
+                  } else {
+                    const v = parseFloat(e.target.value);
+                    if (!isNaN(v) && v >= 0) next[node.item] = v;
+                    else return;
+                  }
+                  onRawCostsChange(next);
+                }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </label>
           )}
         </div>
       )}
