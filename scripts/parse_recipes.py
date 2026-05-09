@@ -148,11 +148,26 @@ def parse_file(path: Path) -> dict[str, Any] | None:
 CATEGORIES = [
     "Recipe", "Item", "Block", "Food", "Tool", "Clothing", "Vehicle",
     "WorldObject", "Fertilizer", "Seed",
+    # Tech holds each profession's skill book + scroll + book-recipe.
+    "Tech",
 ]
+
+# Eco autogen source root. Override with ECO_AUTOGEN env var; default points
+# at the typical Steam install on Windows.
+import os
+DEFAULT_ROOT = Path(
+    r"C:\Program Files (x86)\Steam\steamapps\common\Eco"
+    r"\Eco_Data\Server\Mods\__core__\AutoGen"
+)
 
 
 def main() -> None:
-    root = Path("/home/claude/everything")
+    root = Path(os.environ.get("ECO_AUTOGEN", str(DEFAULT_ROOT)))
+    if not root.is_dir():
+        raise SystemExit(
+            f"Eco autogen source not found at {root}. "
+            "Set ECO_AUTOGEN env var to the AutoGen folder path."
+        )
     recipes: list[dict[str, Any]] = []
     problems: list[str] = []
 
@@ -212,9 +227,8 @@ def main() -> None:
         "producers": producers,
     }
 
-    Path("/home/claude/eco-calories/recipes.json").write_text(
-        json.dumps(out, indent=2)
-    )
+    here = Path(__file__).parent
+    (here / "recipes.json").write_text(json.dumps(out, indent=2))
 
     print(f"Parsed {len(recipes)} recipes")
     print(f"Unique tags used as ingredients: {len(tags)}")

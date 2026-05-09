@@ -13,14 +13,23 @@ every Tag("...") that sits in that stack.
 from __future__ import annotations
 
 import json
+import os
 import re
 from collections import defaultdict
 from pathlib import Path
 
-ROOT = Path("/home/claude/everything")
+# Override with ECO_AUTOGEN env var; default is the typical Windows Steam path.
+DEFAULT_ROOT = Path(
+    r"C:\Program Files (x86)\Steam\steamapps\common\Eco"
+    r"\Eco_Data\Server\Mods\__core__\AutoGen"
+)
+ROOT = Path(os.environ.get("ECO_AUTOGEN", str(DEFAULT_ROOT)))
 CATEGORIES = [
     "Block", "Item", "Food", "Tool", "Clothing", "Fertilizer", "Seed",
     "Animal", "Plant",
+    # Tech holds skill books / scrolls (no Item suffix on the class — see
+    # _walk_classes for the loosened acceptance rule).
+    "Tech",
 ]
 
 # Regex to pick out *any* class declaration ending in "Item" (also "Carcass",
@@ -65,6 +74,12 @@ def main() -> None:
     tag_to_items: dict[str, set[str]] = defaultdict(set)
     item_file: dict[str, str] = {}
 
+    if not ROOT.is_dir():
+        raise SystemExit(
+            f"Eco autogen source not found at {ROOT}. "
+            "Set ECO_AUTOGEN env var to the AutoGen folder path."
+        )
+
     for cat in CATEGORIES:
         cat_dir = ROOT / cat
         if not cat_dir.is_dir():
@@ -73,9 +88,15 @@ def main() -> None:
             text = path.read_text(encoding="utf-8-sig")
             for m in RE_CLASS_DECL.finditer(text):
                 name = m.group(1)
-                # Only care about Item classes (the things actually produced
-                # by recipes / held in inventory). Skip Blocks and Recipes.
-                if not name.endswith("Item"):
+                # Items: things held in inventory / produced by recipes.
+                # Standard items end in "Item"; skill books and scrolls end
+                # in "SkillBook" or "SkillScroll" and are referenced bare in
+                # recipes (e.g. CraftingElement<CarpentrySkillBook>).
+                if not (
+                    name.endswith("Item")
+                    or name.endswith("SkillBook")
+                    or name.endswith("SkillScroll")
+                ):
                     continue
                 attrs = _attribute_block_before(text, m.start())
                 tags = {tm.group(1) for tm in RE_TAG_STRING.finditer(attrs)}
@@ -91,7 +112,8 @@ def main() -> None:
         "itemToTags": {i: sorted(v) for i, v in sorted(item_to_tags.items())},
         "itemFile": dict(sorted(item_file.items())),
     }
-    Path("/home/claude/eco-calories/tags.json").write_text(json.dumps(out, indent=2))
+    here = Path(__file__).parent
+    (here / "tags.json").write_text(json.dumps(out, indent=2))
 
     print(f"Items found: {len(item_file)}")
     print(f"Distinct tags: {len(tag_to_items)}")
