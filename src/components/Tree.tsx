@@ -9,9 +9,14 @@ interface Props {
 export function Tree({ tree, data }: Props) {
   const rootTotal = tree.totalCalories;
   const [copied, setCopied] = useState(false);
+  // Default high enough to cover the deepest real tree. Depth uses the same
+  // 0-indexing as the table: depth 0 is the target itself, depth 1 is its
+  // direct ingredients, etc. So max-depth=1 for "Electronics Skill Book"
+  // emits the book plus every research paper one row down.
+  const [maxDepth, setMaxDepth] = useState<number>(99);
 
   async function copyForSheets() {
-    const tsv = buildTsv(tree, data);
+    const tsv = buildTsv(tree, data, maxDepth);
     try {
       await navigator.clipboard.writeText(tsv);
       setCopied(true);
@@ -32,6 +37,19 @@ export function Tree({ tree, data }: Props) {
   return (
     <div className="tree">
       <div className="tree__toolbar">
+        <label className="tree__depth">
+          <span>max depth</span>
+          <input
+            type="number"
+            min={0}
+            step={1}
+            value={maxDepth}
+            onChange={(e) => {
+              const v = parseInt(e.target.value, 10);
+              if (!isNaN(v) && v >= 0) setMaxDepth(v);
+            }}
+          />
+        </label>
         <button
           type="button"
           className="tree__copy"
@@ -53,12 +71,16 @@ export function Tree({ tree, data }: Props) {
 }
 
 /**
- * Walk the full tree (ignoring UI collapse state) and emit TSV ready to paste
+ * Walk the tree (ignoring UI collapse state) and emit TSV ready to paste
  * into Google Sheets / Excel. Columns: Depth, Item, Item ID, Kind, Recipe,
  * Qty, Labor, Calories, % of Root. Hierarchy is encoded both via the Depth
  * column (numeric, sortable) and a leading-space indent on the Item name.
+ *
+ * `maxDepth` caps how deep the recursion goes — a node at depth N is emitted,
+ * but its children are skipped if N >= maxDepth. So maxDepth=0 emits only the
+ * root; maxDepth=1 emits root + direct ingredients; etc.
  */
-function buildTsv(tree: TreeNode, data: EcoData): string {
+function buildTsv(tree: TreeNode, data: EcoData, maxDepth: number): string {
   const rootTotal = tree.totalCalories;
   const headers = [
     "Depth",
@@ -91,7 +113,9 @@ function buildTsv(tree: TreeNode, data: EcoData): string {
       fmt(node.totalCalories),
       pct.toFixed(2),
     ]);
-    node.children?.forEach((ch) => walk(ch, depth + 1));
+    if (depth < maxDepth) {
+      node.children?.forEach((ch) => walk(ch, depth + 1));
+    }
   }
 
   walk(tree, 0);

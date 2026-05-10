@@ -218,10 +218,36 @@ body {
 .tree__toolbar {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
   padding: 6px 12px;
   border-bottom: var(--hair);
   background: var(--paper-2);
 }
+.tree__depth {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.tree__depth input {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 4px 8px;
+  width: 56px;
+  background: var(--paper);
+  border: 1px solid var(--ink-3);
+  color: var(--ink);
+  outline: none;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+.tree__depth input:focus { border-color: var(--forest); }
 .tree__copy {
   font-family: var(--mono);
   font-size: 10px;
