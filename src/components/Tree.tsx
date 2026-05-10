@@ -8,8 +8,39 @@ interface Props {
 
 export function Tree({ tree, data }: Props) {
   const rootTotal = tree.totalCalories;
+  const [copied, setCopied] = useState(false);
+
+  async function copyForSheets() {
+    const tsv = buildTsv(tree, data);
+    try {
+      await navigator.clipboard.writeText(tsv);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      // Older browsers / insecure context — fall back to a hidden textarea.
+      const ta = document.createElement("textarea");
+      ta.value = tsv;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    }
+  }
+
   return (
     <div className="tree">
+      <div className="tree__toolbar">
+        <button
+          type="button"
+          className="tree__copy"
+          onClick={copyForSheets}
+          aria-label="Copy table as tab-separated values"
+        >
+          {copied ? "✓ Copied" : "Copy for Sheets"}
+        </button>
+      </div>
       <div className="tree__head">
         <div>Item · Recipe</div>
         <div>Labor</div>
@@ -19,6 +50,68 @@ export function Tree({ tree, data }: Props) {
       <Row node={tree} data={data} depth={0} rootTotal={rootTotal} defaultOpen />
     </div>
   );
+}
+
+/**
+ * Walk the full tree (ignoring UI collapse state) and emit TSV ready to paste
+ * into Google Sheets / Excel. Columns: Depth, Item, Item ID, Kind, Recipe,
+ * Qty, Labor, Calories, % of Root. Hierarchy is encoded both via the Depth
+ * column (numeric, sortable) and a leading-space indent on the Item name.
+ */
+function buildTsv(tree: TreeNode, data: EcoData): string {
+  const rootTotal = tree.totalCalories;
+  const headers = [
+    "Depth",
+    "Item",
+    "Item ID",
+    "Kind",
+    "Recipe",
+    "Qty",
+    "Labor",
+    "Calories",
+    "% of Root",
+  ];
+  const rows: string[][] = [headers];
+
+  function walk(node: TreeNode, depth: number) {
+    const indent = "  ".repeat(depth);
+    const name = data.items[node.item] ?? node.item;
+    const recipeCol =
+      node.kind === "recipe" ? node.recipeId ?? "" :
+      node.tagResolvedTo ?? "";
+    const pct = rootTotal > 0 ? (node.totalCalories / rootTotal) * 100 : 0;
+    rows.push([
+      String(depth),
+      indent + name,
+      node.item,
+      node.kind,
+      recipeCol,
+      fmt(node.qty),
+      node.labor != null && node.labor > 0 ? fmt(node.labor) : "",
+      fmt(node.totalCalories),
+      pct.toFixed(2),
+    ]);
+    node.children?.forEach((ch) => walk(ch, depth + 1));
+  }
+
+  walk(tree, 0);
+  return rows
+    .map((row) => row.map(escapeCell).join("\t"))
+    .join("\n");
+}
+
+// TSV doesn't need CSV-style quoting; it just can't contain literal tabs or
+// newlines inside a cell. Defensive collapse in case a label ever slips one in.
+function escapeCell(s: string): string {
+  return s.replace(/[\t\r\n]+/g, " ");
+}
+
+// Plain numeric format for spreadsheets: no thousands separators, no scientific.
+// Trim trailing zeros for fractional values so cells stay tidy.
+function fmt(n: number): string {
+  if (Number.isInteger(n)) return n.toString();
+  const s = n.toFixed(4);
+  return s.replace(/\.?0+$/, "");
 }
 
 function Row({

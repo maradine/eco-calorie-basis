@@ -215,6 +215,29 @@ body {
   border-bottom: var(--rule);
   background: var(--paper);
 }
+.tree__toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 6px 12px;
+  border-bottom: var(--hair);
+  background: var(--paper-2);
+}
+.tree__copy {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 120ms, color 120ms;
+}
+.tree__copy:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
 .tree__row {
   display: grid;
   grid-template-columns: 1fr 100px 120px 50px;
