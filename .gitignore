@@ -7,6 +7,8 @@ dist/
 # generated data - regenerate from scripts/
 scripts/recipes.json
 scripts/tags.json
+scripts/talents.json
+scripts/__pycache__/
 
 # editor
 .vscode/
