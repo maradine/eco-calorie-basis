@@ -74,10 +74,18 @@ def main():
         "talents": talents,
         # Per-item default cal/unit derived from plant ResourceList yields:
         # baseline 20 cal/swing divided by avg yield per harvest action.
+        # Trees and ores are NOT in this map — their cost is computed by the
+        # resolver at runtime from rawHarvest + toolTiers (since tool tier
+        # changes the swing count).
         "defaultRawCosts": t.get("defaultRawCosts", {}),
-        # Diagnostic — used by the UI to caption raw cards ("3.4 cal/wheat
-        # from 2 sources averaging 5.9/swing"). Trees included so users can
-        # sanity-check the rough-default we use for log costs.
+        # Per-item harvest model: { kind: "tree"|"ore", hp, yield, skill }.
+        # Resolver scales 20 cal/swing × ceil(hp/damage) × yield by the
+        # tool currently selected for the governing skill.
+        "rawHarvest": t.get("rawHarvest", {}),
+        # Available tools per gathering skill — what fills the tool-tier
+        # dropdown next to the skill slider.
+        "tools": t.get("tools", {}),
+        # Diagnostic — used by the UI to caption raw cards.
         "plantYields": t.get("plantYields", {}),
         "treeYields": t.get("treeYields", {}),
     }

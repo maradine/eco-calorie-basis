@@ -410,6 +410,36 @@ body {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+.skills__tool {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 24px;
+  padding: 4px 0 4px 14px;
+  border-left: 1px dashed var(--ink-3);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-2);
+}
+.skills__tool-label {
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  min-width: 36px;
+}
+.skills__tool select {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 3px 8px;
+  background: var(--paper);
+  border: 1px solid var(--ink-3);
+  color: var(--ink);
+  outline: none;
+  cursor: pointer;
+  min-width: 240px;
+}
+.skills__tool select:focus { border-color: var(--forest); }
 .skills__talents {
   display: flex;
   flex-direction: column;

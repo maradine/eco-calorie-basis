@@ -77,6 +77,28 @@ export interface TalentInfo {
 // User-selected per-talent level. Talent disabled = 0; enabled = 1..maxLevel.
 export type TalentLevels = Record<string, number>;
 
+export interface ToolInfo {
+  displayName: string;
+  kind: string;       // "axe" | "pickaxe" | "sickle" | ...
+  skill: string;      // gathering skill that governs this tool
+  tier: number;       // 1 (Stone) .. 4 (Modern)
+  damage: number;     // damage per swing
+}
+
+export interface RawHarvestInfo {
+  // tree → felled trunk, log drops; ore → mined block, single drop; plants
+  // are kept in defaultRawCosts since tool tier doesn't affect their cost.
+  kind: "tree" | "ore";
+  hp: number;         // block / tree HP to chop through
+  yield: number;      // expected drops per fell/mine action
+  skill: string;      // gathering skill (LoggingSkill, MiningSkill, ...)
+}
+
+// User-selected tool per gathering skill: toolTiers[skillId] = toolItemId.
+// When unset, the resolver defaults to the lowest-tier tool that exists for
+// that skill (Stone Axe / Stone Pickaxe / etc.).
+export type ToolTiers = Record<string, string>;
+
 export interface FoodInfo {
   // Energy granted to the player on consumption.
   calories: number | null;
@@ -101,8 +123,14 @@ export interface EcoData {
   talents: Record<string, TalentInfo>;  // talentId -> bonus definitions
   // Per-item default cal/unit, derived from in-game plant yield data
   // (20 cal/swing baseline / avg yield per harvest action). Items not in
-  // this map fall back to the global 20 cal/unit floor.
+  // this map fall back to the global 20 cal/unit floor — or to rawHarvest
+  // for tree/ore items where the cost depends on chosen tool tier.
   defaultRawCosts: Record<string, number>;
+  // Tree/ore harvest model — resolver computes per-unit cost at runtime
+  // using the user's selected tool tier for the governing skill.
+  rawHarvest: Record<string, RawHarvestInfo>;
+  // Tools indexed by item id, used to populate per-skill tool pickers.
+  tools: Record<string, ToolInfo>;
   // Diagnostic yield tables used to caption raw cards in the UI.
   plantYields: Record<string, YieldInfo>;
   treeYields: Record<string, YieldInfo>;

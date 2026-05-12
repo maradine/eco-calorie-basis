@@ -6,6 +6,7 @@ import type {
   SkillLevels,
   TalentEffect,
   TalentLevels,
+  ToolTiers,
   TreeNode,
 } from "./types";
 
@@ -33,6 +34,7 @@ export interface ResolveOptions {
   rawCosts?: Record<string, number>;
   skillLevels?: SkillLevels;
   talentLevels?: TalentLevels;
+  toolTiers?: ToolTiers;
 }
 
 export class Resolver {
@@ -43,6 +45,7 @@ export class Resolver {
   private rawCosts: Record<string, number>;
   private skillLevels: SkillLevels;
   private talentLevels: TalentLevels;
+  private toolTiers: ToolTiers;
 
   constructor(private data: EcoData, opts: ResolveOptions = {}) {
     this.recipesById = new Map(data.recipes.map((r) => [r.id, r]));
@@ -50,6 +53,7 @@ export class Resolver {
     this.rawCosts = opts.rawCosts ?? {};
     this.skillLevels = opts.skillLevels ?? {};
     this.talentLevels = opts.talentLevels ?? {};
+    this.toolTiers = opts.toolTiers ?? {};
   }
 
   /**
@@ -69,6 +73,42 @@ export class Resolver {
   setTalentLevels(levels: TalentLevels) {
     this.talentLevels = levels;
     this.memo.clear();
+  }
+
+  setToolTiers(tiers: ToolTiers) {
+    this.toolTiers = tiers;
+    this.memo.clear();
+  }
+
+  /** Cost-per-unit for a tree/ore raw item, given the seller's chosen tool
+   *  for that gathering skill. Defaults to tier-2 ("Iron") tool damage when
+   *  no selection — a defensible middle-of-the-progression baseline that
+   *  matches what most sellers will be using. */
+  private rawHarvestCost(item: string): number | null {
+    const info = this.data.rawHarvest?.[item];
+    if (!info) return null;
+    const chosen = this.toolTiers[info.skill];
+    const chosenTool = chosen ? this.data.tools?.[chosen] : undefined;
+    const damage = chosenTool?.damage ?? this.defaultToolDamage(info.skill);
+    const swings = info.hp / damage;
+    const yld = info.yield > 0 ? info.yield : 1;
+    return (swings * 20) / yld;
+  }
+
+  /** Damage of the "typical" tool for a skill — tier 2 (Iron) when it
+   *  exists, else the lowest-damage option. Used when no toolTiers entry
+   *  is set for that skill. */
+  private defaultToolDamage(skill: string): number {
+    const matches: number[] = [];
+    let tier2: number | null = null;
+    for (const tool of Object.values(this.data.tools ?? {})) {
+      if (tool.skill !== skill) continue;
+      matches.push(tool.damage);
+      if (tool.tier === 2 && tier2 === null) tier2 = tool.damage;
+    }
+    if (tier2 !== null) return tier2;
+    if (matches.length === 0) return 1;
+    return Math.min(...matches);
   }
 
   /** Labor-cost multiplier for a recipe given its labor-governing skill. */
@@ -182,8 +222,12 @@ export class Resolver {
 
       if (producers.length === 0) {
         // Raw harvest leaf — apply yield talents that target this item's tags.
-        const baseCost =
+        // Priority: user override → tree/ore tier-scaled compute → baked plant
+// default → global 20. Tree/ore costs flow through rawHarvest because they
+// depend on which tool tier the seller is using.
+const baseCost =
   this.rawCosts[item] ??
+  this.rawHarvestCost(item) ??
   this.data.defaultRawCosts?.[item] ??
   DEFAULT_RAW_COST;
         const yieldFactor =
@@ -198,8 +242,12 @@ export class Resolver {
         // always dig sand/dirt out of the world rather than spin up a rocker
         // box. Pinning a specific recipe via the override switches back.
         if (gatherable && (!chosen || chosen === GATHER_CHOICE)) {
-          const baseCost =
+          // Priority: user override → tree/ore tier-scaled compute → baked plant
+// default → global 20. Tree/ore costs flow through rawHarvest because they
+// depend on which tool tier the seller is using.
+const baseCost =
   this.rawCosts[item] ??
+  this.rawHarvestCost(item) ??
   this.data.defaultRawCosts?.[item] ??
   DEFAULT_RAW_COST;
           const yieldFactor =

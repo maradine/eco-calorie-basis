@@ -113,6 +113,45 @@ RE_TREE_HEALTH = re.compile(r'this\.TreeHealth\s*=\s*([\d\.]+)f?')
 # So cal_per_hp = 20 / axe_damage.
 ASSUMED_AXE_DAMAGE = 1.5
 
+# Tool damage values are declared two different ways in autogen Tool/*.cs:
+#   - CreateDamageValue(1.5f, typeof(LoggingSkill), typeof(IronAxeItem))   -- axes/sickles/shovels
+#   - damage = new ConstantValue(2);                                       -- pickaxes
+# We try both. Skill type is included where present.
+RE_TOOL_DAMAGE_CREATE = re.compile(
+    r'CreateDamageValue\(\s*([\d\.]+)f?\s*,\s*typeof\((\w+Skill)\)'
+)
+RE_TOOL_DAMAGE_CONSTANT = re.compile(
+    r'damage\s*=\s*new\s+ConstantValue\(\s*([\d\.]+)f?\s*\)'
+)
+# Pickaxes burn calories on MiningSkill but their damage is unkeyed; infer
+# the skill from `CreateCalorieValue(..., typeof(MiningSkill), ...)`.
+RE_TOOL_CAL_SKILL = re.compile(
+    r'CreateCalorieValue\(\s*\d+(?:\.\d+)?f?\s*,\s*typeof\((\w+Skill)\)'
+)
+RE_TOOL_TIER = re.compile(r'\[Tier\((\d+)\)\]')
+# Tool kind is derived from the base class — `: AxeItem`, `: PickaxeItem`, etc.
+RE_TOOL_BASE_CLASS = re.compile(
+    r'public\s+partial\s+class\s+\w+Item\s*:\s*(\w+Item)\b'
+)
+TOOL_BASE_TO_KIND = {
+    "AxeItem": "axe",
+    "PickaxeItem": "pickaxe",
+    "SickleItem": "sickle",
+    "ScytheItem": "scythe",
+    "ShovelItem": "shovel",
+    "HoeItem": "hoe",
+    "MacheteItem": "machete",
+    "HammerItem": "hammer",
+    "BowItem": "bow",
+    "RockDrillItem": "rock_drill",
+}
+
+# Block hardness for Minable blocks — `[..., Minable(2), ...]` on a
+# `XxxOreBlock` class. Mining cost = hardness × 20 / pickaxe_damage for the
+# chosen tier. The bracket-attribute can stack with others (`[Solid, Wall,
+# Minable(2)]`), so we match the inner token only.
+RE_MINABLE = re.compile(r'\bMinable\((\d+)\)')
+
 
 def _attribute_block_before(text: str, class_start: int) -> str:
     """Walk backwards from `class_start` over the contiguous attribute stack."""
@@ -250,30 +289,103 @@ def main() -> None:
                 if species_kind == "tree" and tree_health is not None:
                     entry["hpSum"] += tree_health
 
-    # Default raw cost per item:
-    #   - Plant-harvested: 20 cal/swing / avg yield per harvest action.
-    #   - Tree-felled: (avg TreeHealth × 20 / ASSUMED_AXE_DAMAGE) / avg yield.
-    #     Felling a tree costs (HP / damage) swings × 20 cal each, then drops
-    #     the ResourceList yield of logs on the ground. We assume Iron Axe
-    #     damage (1.5) — a defensible middle-of-the-progression baseline that
-    #     the seller can override per-item if they're using a different tier.
+    # Tool extraction: each tool's tier + damage + governing skill so the
+    # resolver can dynamically scale tree-/ore-harvest cost by chosen tier.
+    tools: dict[str, dict] = {}
+    tool_dir = ROOT / "Tool"
+    if tool_dir.is_dir():
+        for path in sorted(tool_dir.glob("*.cs")):
+            text = path.read_text(encoding="utf-8-sig")
+            base_m = RE_TOOL_BASE_CLASS.search(text)
+            if not base_m:
+                continue
+            kind = TOOL_BASE_TO_KIND.get(base_m.group(1))
+            if kind is None:
+                continue
+            # Damage + skill — try both declaration patterns.
+            dmg_m = RE_TOOL_DAMAGE_CREATE.search(text)
+            if dmg_m:
+                damage = float(dmg_m.group(1))
+                skill = dmg_m.group(2)
+            else:
+                dmg_m = RE_TOOL_DAMAGE_CONSTANT.search(text)
+                if not dmg_m:
+                    continue
+                damage = float(dmg_m.group(1))
+                # Skill not on damage line — pull from the calorie burn line.
+                cal_skill_m = RE_TOOL_CAL_SKILL.search(text)
+                skill = cal_skill_m.group(1) if cal_skill_m else None
+            if not skill:
+                continue
+            tier_m = RE_TOOL_TIER.search(text)
+            tier = int(tier_m.group(1)) if tier_m else 1
+            display_m = re.search(r'\[LocDisplayName\("([^"]+)"\)\]', text)
+            display = display_m.group(1) if display_m else path.stem
+            # Tool id = the class name immediately after `class` in the item
+            # class declaration. Path stem usually matches the class root.
+            cls_m = re.search(
+                r'public\s+partial\s+class\s+(\w+Item)\s*:\s*\w+Item\b', text,
+            )
+            tool_id = cls_m.group(1) if cls_m else f"{path.stem}Item"
+            tools[tool_id] = {
+                "displayName": display,
+                "kind": kind,
+                "skill": skill,
+                "tier": tier,
+                "damage": damage,
+            }
+
+    # Ore blocks: pick up `[Minable(N)]` from each block file. The Item class
+    # in the same file is what the player ends up with; tag those items with
+    # their hardness and the governing MiningSkill.
+    ore_hardness: dict[str, int] = {}
+    block_dir = ROOT / "Block"
+    if block_dir.is_dir():
+        for path in sorted(block_dir.glob("*.cs")):
+            text = path.read_text(encoding="utf-8-sig")
+            hm = RE_MINABLE.search(text)
+            if not hm:
+                continue
+            hardness = int(hm.group(1))
+            # Companion *Item class in the same file.
+            for cm in re.finditer(r'public\s+partial\s+class\s+(\w+Item)\b', text):
+                ore_hardness[cm.group(1)] = hardness
+                break
+
+    # Raw-harvest table — the resolver computes per-unit cost from this at
+    # runtime using the seller's chosen tool tier.
+    #   { kind: "tree", hp, yield, skill }       — trees, felling cost
+    #   { kind: "ore",  hp, yield: 1, skill }    — mined blocks
+    # Plant items don't end up here; their cost (20/yield) doesn't scale with
+    # tool tier (one cut kills the plant regardless of sickle quality), so we
+    # keep them in the baked `defaultRawCosts`.
+    raw_harvest: dict[str, dict] = {}
+    for item, agg in tree_yields.items():
+        if agg["count"] == 0 or agg["sum"] == 0 or agg["hpSum"] == 0:
+            continue
+        raw_harvest[item] = {
+            "kind": "tree",
+            "hp": round(agg["hpSum"] / agg["count"], 3),
+            "yield": round(agg["sum"] / agg["count"], 3),
+            "skill": "LoggingSkill",
+        }
+    for item, hardness in ore_hardness.items():
+        raw_harvest[item] = {
+            "kind": "ore",
+            "hp": hardness,
+            "yield": 1,
+            "skill": "MiningSkill",
+        }
+
+    # Plant defaults are static — yield divides into the per-swing 20 cal,
+    # tool tier doesn't enter into it.
     default_raw_costs: dict[str, float] = {}
-    cal_per_hp = 20.0 / ASSUMED_AXE_DAMAGE
     for item, agg in plant_yields.items():
         if agg["count"] == 0:
             continue
         avg = agg["sum"] / agg["count"]
         if avg > 0:
             default_raw_costs[item] = round(20.0 / avg, 4)
-    for item, agg in tree_yields.items():
-        if agg["count"] == 0 or agg["sum"] == 0:
-            continue
-        if agg["hpSum"] == 0:
-            continue  # tree species without an HP override — skip
-        avg_yield = agg["sum"] / agg["count"]
-        avg_hp = agg["hpSum"] / agg["count"]
-        if avg_yield > 0:
-            default_raw_costs[item] = round(avg_hp * cal_per_hp / avg_yield, 4)
 
     # Second pass: extract skill multiplier tables from Tech/*.cs. Each
     # specialty Skill class declares a MultiplicativeStrategy array of
@@ -315,6 +427,8 @@ def main() -> None:
         "itemFile": dict(sorted(item_file.items())),
         "food": dict(sorted(food.items())),
         "skills": dict(sorted(skills.items())),
+        "tools": dict(sorted(tools.items())),
+        "rawHarvest": dict(sorted(raw_harvest.items())),
         "defaultRawCosts": dict(sorted(default_raw_costs.items())),
         # Auxiliary info on how each yield was computed — useful for the
         # UI to surface "this default comes from N plant species averaging
@@ -343,11 +457,13 @@ def main() -> None:
     print(f"Distinct tags: {len(tag_to_items)}")
     print(f"Food items with nutrition: {len(food)}")
     print(f"Skills with multiplier tables: {len(skills)}")
-    plant_overrides = sum(1 for item in plant_yields if item in default_raw_costs)
-    tree_overrides = sum(1 for item in tree_yields if item in default_raw_costs)
-    print(f"Plant yields tracked: {len(plant_yields)} items -> {plant_overrides} defaults")
-    print(f"Tree yields tracked: {len(tree_yields)} items -> {tree_overrides} defaults")
-    print(f"  (tree model: TreeHealth × {20/ASSUMED_AXE_DAMAGE:.1f} cal/HP / avg yield)")
+    plant_count = len([i for i in plant_yields if i in default_raw_costs])
+    tree_count = len([i for i in raw_harvest.values() if i["kind"] == "tree"])
+    ore_count = len([i for i in raw_harvest.values() if i["kind"] == "ore"])
+    print(f"Plant yields baked: {plant_count} items (1 cut / yield)")
+    print(f"Tree harvest entries: {tree_count} items (TreeHealth + yield, tier-scaled)")
+    print(f"Ore harvest entries: {ore_count} items (Minable hardness, tier-scaled)")
+    print(f"Tool tiers indexed: {len(tools)} items")
     print()
 
     # Report coverage of the recipe-ingredient tags we care about.

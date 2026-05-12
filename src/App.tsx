@@ -22,6 +22,9 @@ export default function App() {
   // Talent investment per talent id. 0 = not learned; 1..maxLevel = invested.
   // For flat talents only 0/1 is meaningful. Auto-clears below required skill.
   const [talentLevels, setTalentLevels] = useState<Record<string, number>>({});
+  // Chosen tool per gathering skill (LoggingSkill, MiningSkill, ...).
+  // Scales tree/ore raw-harvest cost. Empty = Iron-tier default.
+  const [toolTiers, setToolTiers] = useState<Record<string, string>>({});
   const [view, setView] = useState<ViewMode>("diagram");
 
   useEffect(() => {
@@ -37,8 +40,14 @@ export default function App() {
 
   const resolver = useMemo(() => {
     if (!data) return null;
-    return new Resolver(data, { choices, rawCosts, skillLevels, talentLevels });
-  }, [data, choices, rawCosts, skillLevels, talentLevels]);
+    return new Resolver(data, {
+      choices,
+      rawCosts,
+      skillLevels,
+      talentLevels,
+      toolTiers,
+    });
+  }, [data, choices, rawCosts, skillLevels, talentLevels, toolTiers]);
 
   const tree: TreeNode | null = useMemo(() => {
     if (!resolver || !selectedItem) return null;
@@ -50,9 +59,12 @@ export default function App() {
     return flattenRawInputs(tree);
   }, [tree]);
 
-  // Walk the resolved tree to find every laborSkill referenced by an
-  // in-use recipe — these are the skills we surface as sliders. Skill IDs
-  // present in data.skills (i.e. we have a multiplier table for them).
+  // Walk the resolved tree to find every skill that should surface a
+  // slider. That covers two cases:
+  //   - laborSkill on a recipe in use (Carpenter, Mason, …)
+  //   - gather skill on a raw tree/ore in use (Logging, Mining)
+  // Skills must also be in data.skills — we don't render a slider for
+  // skills without a multiplier table.
   const skillsInTree = useMemo(() => {
     const set = new Set<string>();
     if (!tree || !data) return set;
@@ -62,6 +74,12 @@ export default function App() {
         const r = d.recipes.find((x) => x.id === n.recipeId);
         if (r?.laborSkill && d.skills[r.laborSkill]) {
           set.add(r.laborSkill);
+        }
+      }
+      if (n.kind === "raw") {
+        const harvest = d.rawHarvest?.[n.item];
+        if (harvest?.skill && d.skills[harvest.skill]) {
+          set.add(harvest.skill);
         }
       }
       n.children?.forEach(visit);
@@ -137,6 +155,17 @@ export default function App() {
                         a.skillLevelRequired - b.skillLevelRequired ||
                         a.displayName.localeCompare(b.displayName),
                       );
+                    // Tool picker: only render if this skill has at least
+                    // two distinct damage values across its tools. Sickles
+                    // and shovels all do damage 1 — no point exposing the
+                    // dropdown there.
+                    const skillTools = Object.entries(data.tools ?? {})
+                      .filter(([, t]) => t.skill === skillId)
+                      .sort(([, a], [, b]) =>
+                        a.tier - b.tier || a.damage - b.damage,
+                      );
+                    const damages = new Set(skillTools.map(([, t]) => t.damage));
+                    const hasToolChoice = damages.size > 1;
                     return (
                       <div key={skillId} className="skills__block">
                         <div className="skills__row">
@@ -157,6 +186,27 @@ export default function App() {
                           <div className="skills__level">Lvl {level}</div>
                           <div className="skills__mult">×{mult.toFixed(2)}</div>
                         </div>
+                        {hasToolChoice && (
+                          <div className="skills__tool">
+                            <span className="skills__tool-label">tool</span>
+                            <select
+                              value={toolTiers[skillId] ?? ""}
+                              onChange={(e) => {
+                                const next = { ...toolTiers };
+                                if (e.target.value === "") delete next[skillId];
+                                else next[skillId] = e.target.value;
+                                setToolTiers(next);
+                              }}
+                            >
+                              <option value="">Iron (default)</option>
+                              {skillTools.map(([tid, t]) => (
+                                <option key={tid} value={tid}>
+                                  T{t.tier} · {t.displayName} · dmg {t.damage}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
                         {talents.length > 0 && (
                           <div className="skills__talents">
                             {talents.map(([tid, t]) => {
@@ -260,6 +310,7 @@ export default function App() {
                   onChoicesChange={setChoices}
                   rawCosts={rawCosts}
                   onRawCostsChange={setRawCosts}
+                  toolTiers={toolTiers}
                 />
               ) : (
                 <Tree tree={tree} data={data} />

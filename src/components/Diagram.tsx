@@ -14,6 +14,8 @@ interface Props {
   onChoicesChange: (choices: Choices) => void;
   rawCosts: Record<string, number>;
   onRawCostsChange: (costs: Record<string, number>) => void;
+  // Tool tiers feed into the displayed default cal/unit for tree/ore raws.
+  toolTiers: Record<string, string>;
 }
 
 /**
@@ -32,6 +34,7 @@ export function Diagram({
   onChoicesChange,
   rawCosts,
   onRawCostsChange,
+  toolTiers,
 }: Props) {
   const layout = useMemo(() => buildDiagram(tree, data), [tree, data]);
 
@@ -320,6 +323,7 @@ export function Diagram({
                 onChoicesChange={onChoicesChange}
                 rawCosts={rawCosts}
                 onRawCostsChange={onRawCostsChange}
+                toolTiers={toolTiers}
                 isHighlighted={highlightedId === dn.id}
                 onToggleHighlight={() =>
                   setHighlightedId((prev) => (prev === dn.id ? null : dn.id))
@@ -344,6 +348,7 @@ function Card({
   onChoicesChange,
   rawCosts,
   onRawCostsChange,
+  toolTiers,
   isHighlighted,
   onToggleHighlight,
   registerRef,
@@ -354,6 +359,7 @@ function Card({
   onChoicesChange: (c: Choices) => void;
   rawCosts: Record<string, number>;
   onRawCostsChange: (c: Record<string, number>) => void;
+  toolTiers: Record<string, string>;
   isHighlighted: boolean;
   onToggleHighlight: () => void;
   registerRef: (el: HTMLDivElement | null) => void;
@@ -482,6 +488,7 @@ function Card({
                   step="0.1"
                   value={
                     rawCosts[node.item] ??
+                    rawHarvestDefault(node.item, data, toolTiers) ??
                     data.defaultRawCosts?.[node.item] ??
                     DEFAULT_RAW_COST
                   }
@@ -538,4 +545,32 @@ function humanizeTable(table: string): string {
   return table
     .replace(/Object$/, "")
     .replace(/([a-z])([A-Z])/g, "$1 $2");
+}
+
+/** Mirror of Resolver.rawHarvestCost — used to show the *currently effective*
+ *  cal/unit in the raw card's input when no user override exists. Reads
+ *  toolTiers + data.rawHarvest + data.tools the same way the resolver does. */
+function rawHarvestDefault(
+  item: string,
+  data: EcoData,
+  toolTiers: Record<string, string>,
+): number | null {
+  const info = data.rawHarvest?.[item];
+  if (!info) return null;
+  const chosen = toolTiers[info.skill];
+  const chosenTool = chosen ? data.tools?.[chosen] : undefined;
+  let damage = chosenTool?.damage;
+  if (damage == null) {
+    // Match resolver default: tier 2 ("Iron") tool, else lowest damage.
+    let tier2: number | null = null;
+    let lowest: number | null = null;
+    for (const t of Object.values(data.tools ?? {})) {
+      if (t.skill !== info.skill) continue;
+      if (t.tier === 2 && tier2 === null) tier2 = t.damage;
+      if (lowest === null || t.damage < lowest) lowest = t.damage;
+    }
+    damage = tier2 ?? lowest ?? 1;
+  }
+  const yld = info.yield > 0 ? info.yield : 1;
+  return Math.round((info.hp * 20 * 10000) / damage / yld) / 10000;
 }
