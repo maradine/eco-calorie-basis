@@ -473,27 +473,41 @@ function Card({
           )}
 
           {node.kind === "raw" && (
-            <label className="card__field">
-              <span className="card__field-label">cal / unit</span>
-              <input
-                type="number"
-                min={0}
-                step="0.1"
-                value={rawCosts[node.item] ?? DEFAULT_RAW_COST}
-                onChange={(e) => {
-                  const next = { ...rawCosts };
-                  if (e.target.value === "") {
-                    delete next[node.item];
-                  } else {
-                    const v = parseFloat(e.target.value);
-                    if (!isNaN(v) && v >= 0) next[node.item] = v;
-                    else return;
+            <>
+              <label className="card__field">
+                <span className="card__field-label">cal / unit</span>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.1"
+                  value={
+                    rawCosts[node.item] ??
+                    data.defaultRawCosts?.[node.item] ??
+                    DEFAULT_RAW_COST
                   }
-                  onRawCostsChange(next);
-                }}
-                onClick={(e) => e.stopPropagation()}
-              />
-            </label>
+                  onChange={(e) => {
+                    const next = { ...rawCosts };
+                    if (e.target.value === "") {
+                      delete next[node.item];
+                    } else {
+                      const v = parseFloat(e.target.value);
+                      if (!isNaN(v) && v >= 0) next[node.item] = v;
+                      else return;
+                    }
+                    onRawCostsChange(next);
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </label>
+              {(data.plantYields?.[node.item] ||
+                data.treeYields?.[node.item]) && (
+                <div className="card__yield-note">
+                  {data.plantYields?.[node.item]
+                    ? `~${data.plantYields[node.item].avgYield}/swing`
+                    : `~${data.treeYields![node.item].avgYield}/tree`}
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

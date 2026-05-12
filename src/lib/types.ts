@@ -99,6 +99,18 @@ export interface EcoData {
   food: Record<string, FoodInfo>;       // itemId -> nutrition (food items only)
   skills: Record<string, SkillInfo>;    // skillId -> labor-multiplier table
   talents: Record<string, TalentInfo>;  // talentId -> bonus definitions
+  // Per-item default cal/unit, derived from in-game plant yield data
+  // (20 cal/swing baseline / avg yield per harvest action). Items not in
+  // this map fall back to the global 20 cal/unit floor.
+  defaultRawCosts: Record<string, number>;
+  // Diagnostic yield tables used to caption raw cards in the UI.
+  plantYields: Record<string, YieldInfo>;
+  treeYields: Record<string, YieldInfo>;
+}
+
+export interface YieldInfo {
+  avgYield: number;  // average drop per harvest action (plant) or per tree (tree)
+  sources: number;   // count of species contributing to this average
 }
 
 // Node kinds in the resolved breakdown tree.

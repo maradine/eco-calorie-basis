@@ -841,6 +841,13 @@ body {
   font-size: 10px;
   font-style: italic;
 }
+.card__yield-note {
+  color: var(--ink-3);
+  font-size: 9.5px;
+  letter-spacing: 0.05em;
+  font-style: italic;
+  text-align: right;
+}
 .card__field {
   display: flex;
   flex-direction: column;

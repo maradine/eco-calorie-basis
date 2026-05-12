@@ -182,7 +182,10 @@ export class Resolver {
 
       if (producers.length === 0) {
         // Raw harvest leaf — apply yield talents that target this item's tags.
-        const baseCost = this.rawCosts[item] ?? DEFAULT_RAW_COST;
+        const baseCost =
+  this.rawCosts[item] ??
+  this.data.defaultRawCosts?.[item] ??
+  DEFAULT_RAW_COST;
         const yieldFactor =
           this.talentMultiplier(null, item, "HarvestYield") *
           this.talentMultiplier(null, item, "Yield");
@@ -195,7 +198,10 @@ export class Resolver {
         // always dig sand/dirt out of the world rather than spin up a rocker
         // box. Pinning a specific recipe via the override switches back.
         if (gatherable && (!chosen || chosen === GATHER_CHOICE)) {
-          const baseCost = this.rawCosts[item] ?? DEFAULT_RAW_COST;
+          const baseCost =
+  this.rawCosts[item] ??
+  this.data.defaultRawCosts?.[item] ??
+  DEFAULT_RAW_COST;
           const yieldFactor =
             this.talentMultiplier(null, item, "HarvestYield") *
             this.talentMultiplier(null, item, "Yield");

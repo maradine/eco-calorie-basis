@@ -87,6 +87,22 @@ def _eval_float_expr(s: str):
         return None
 
 
+# Species type — distinguishes plants (one-swing harvest, yield per kill)
+# from trees (whole-tree felling, yield per tree).
+RE_SPECIES_CLASS = re.compile(
+    r'public\s+partial\s+class\s+(\w+Species)\s*:\s*(\w+Species)\b'
+)
+# Resource entries inside a `ResourceList = new List<SpeciesResource>() {...}`.
+# Each is `new SpeciesResource(typeof(XxxItem), new Range(lo, hi), freq)` —
+# freq defaults to 1 when it's the primary drop.
+RE_SPECIES_RESOURCE = re.compile(
+    r'new\s+SpeciesResource\s*\(\s*'
+    r'typeof\((\w+)\)\s*,\s*'
+    r'new\s+Range\s*\(\s*([\d\.\-]+)f?\s*,\s*([\d\.\-]+)f?\s*\)\s*'
+    r'(?:,\s*([\d\.\-]+)f?\s*)?\)'
+)
+
+
 def _attribute_block_before(text: str, class_start: int) -> str:
     """Walk backwards from `class_start` over the contiguous attribute stack."""
     # Scan line-by-line backward. Stop at the first line that isn't an
@@ -174,6 +190,54 @@ def main() -> None:
                             "vitamins": float(nut_m.group(4)) if nut_m else None,
                         }
 
+    # Plant yields: scan AutoGen/Plant/*.cs for each species' ResourceList.
+    # We accumulate (sum of avg yields, count) per produced item across every
+    # species that drops it, then average at the end. Trees are tracked
+    # separately because their yield is per-tree (many swings to fell) rather
+    # than per-harvest-action — we surface their data but don't auto-fold it
+    # into the cal/unit default since we'd need block hardness to do that.
+    plant_yields: dict[str, dict[str, float]] = {}   # itemId -> {sum, count}
+    tree_yields: dict[str, dict[str, float]] = {}    # itemId -> {sum, count}
+    plant_dir = ROOT / "Plant"
+    if plant_dir.is_dir():
+        for path in sorted(plant_dir.glob("*.cs")):
+            text = path.read_text(encoding="utf-8-sig")
+            # Determine kind from base class. TreeSpecies → tree;
+            # PlantSpecies → plant. Anything else we skip.
+            species_kind = None
+            for sm in RE_SPECIES_CLASS.finditer(text):
+                base = sm.group(2)
+                if base == "TreeSpecies":
+                    species_kind = "tree"
+                    break
+                if base == "PlantSpecies":
+                    species_kind = "plant"
+                    break
+            if species_kind is None:
+                continue
+            bucket = tree_yields if species_kind == "tree" else plant_yields
+            for rm in RE_SPECIES_RESOURCE.finditer(text):
+                item = rm.group(1)
+                lo = float(rm.group(2))
+                hi = float(rm.group(3))
+                freq = float(rm.group(4)) if rm.group(4) else 1.0
+                avg = ((lo + hi) / 2.0) * freq
+                entry = bucket.setdefault(item, {"sum": 0.0, "count": 0.0})
+                entry["sum"] += avg
+                entry["count"] += 1
+
+    # Default raw cost per item = 20 / avg_yield for plant-harvested items.
+    # 20 = baseline cal/swing across every Eco harvesting tool. Trees are
+    # left at the global default since per-log cost depends on tree HP +
+    # axe damage, which the autogen doesn't expose.
+    default_raw_costs: dict[str, float] = {}
+    for item, agg in plant_yields.items():
+        if agg["count"] == 0:
+            continue
+        avg = agg["sum"] / agg["count"]
+        if avg > 0:
+            default_raw_costs[item] = round(20.0 / avg, 4)
+
     # Second pass: extract skill multiplier tables from Tech/*.cs. Each
     # specialty Skill class declares a MultiplicativeStrategy array of
     # labor-cost factors indexed by level — what we surface in the UI as a
@@ -214,6 +278,26 @@ def main() -> None:
         "itemFile": dict(sorted(item_file.items())),
         "food": dict(sorted(food.items())),
         "skills": dict(sorted(skills.items())),
+        "defaultRawCosts": dict(sorted(default_raw_costs.items())),
+        # Auxiliary info on how each yield was computed — useful for the
+        # UI to surface "this default comes from N plant species averaging
+        # X yield per harvest" without re-deriving the math client-side.
+        "plantYields": {
+            item: {
+                "avgYield": round(agg["sum"] / agg["count"], 3),
+                "sources": int(agg["count"]),
+            }
+            for item, agg in sorted(plant_yields.items())
+            if agg["count"] > 0
+        },
+        "treeYields": {
+            item: {
+                "avgYield": round(agg["sum"] / agg["count"], 3),
+                "sources": int(agg["count"]),
+            }
+            for item, agg in sorted(tree_yields.items())
+            if agg["count"] > 0
+        },
     }
     here = Path(__file__).parent
     (here / "tags.json").write_text(json.dumps(out, indent=2))
@@ -222,6 +306,9 @@ def main() -> None:
     print(f"Distinct tags: {len(tag_to_items)}")
     print(f"Food items with nutrition: {len(food)}")
     print(f"Skills with multiplier tables: {len(skills)}")
+    print(f"Plant yields tracked: {len(plant_yields)} items "
+          f"-> {len(default_raw_costs)} default cal/unit overrides")
+    print(f"Tree yields tracked: {len(tree_yields)} items (not auto-folded)")
     print()
 
     # Report coverage of the recipe-ingredient tags we care about.

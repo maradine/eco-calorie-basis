@@ -72,6 +72,14 @@ def main():
         "food": t.get("food", {}),
         "skills": t.get("skills", {}),
         "talents": talents,
+        # Per-item default cal/unit derived from plant ResourceList yields:
+        # baseline 20 cal/swing divided by avg yield per harvest action.
+        "defaultRawCosts": t.get("defaultRawCosts", {}),
+        # Diagnostic — used by the UI to caption raw cards ("3.4 cal/wheat
+        # from 2 sources averaging 5.9/swing"). Trees included so users can
+        # sanity-check the rough-default we use for log costs.
+        "plantYields": t.get("plantYields", {}),
+        "treeYields": t.get("treeYields", {}),
     }
     out = APP_ROOT / "public" / "eco-data.json"
     out.write_text(json.dumps(bundle))
