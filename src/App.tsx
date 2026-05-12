@@ -163,6 +163,45 @@ export default function App() {
                 <div className="sticky-target__label">raw inputs</div>
                 <div className="sticky-target__value">{rawInputs.size}</div>
               </div>
+              {/* If the target is a food, surface in-game nutrition values
+                  the player gains by eating it. */}
+              {data.food[selectedItem] && (
+                <>
+                  <div className="sticky-target__divider" />
+                  {data.food[selectedItem].calories != null && (
+                    <div className="sticky-target__stat">
+                      <div className="sticky-target__label">food cal</div>
+                      <div className="sticky-target__value">
+                        {Math.round(data.food[selectedItem].calories!)}
+                      </div>
+                    </div>
+                  )}
+                  <div className="sticky-target__stat">
+                    <div className="sticky-target__label">carbs</div>
+                    <div className="sticky-target__value">
+                      {data.food[selectedItem].carbs ?? 0}
+                    </div>
+                  </div>
+                  <div className="sticky-target__stat">
+                    <div className="sticky-target__label">fat</div>
+                    <div className="sticky-target__value">
+                      {data.food[selectedItem].fat ?? 0}
+                    </div>
+                  </div>
+                  <div className="sticky-target__stat">
+                    <div className="sticky-target__label">protein</div>
+                    <div className="sticky-target__value">
+                      {data.food[selectedItem].protein ?? 0}
+                    </div>
+                  </div>
+                  <div className="sticky-target__stat">
+                    <div className="sticky-target__label">vitamins</div>
+                    <div className="sticky-target__value">
+                      {data.food[selectedItem].vitamins ?? 0}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </>

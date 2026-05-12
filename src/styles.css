@@ -811,14 +811,23 @@ body {
   background: var(--ink);
   color: var(--paper);
   padding: 14px 24px;
-  display: grid;
-  grid-template-columns: 1fr auto auto auto;
-  gap: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 24px;
   align-items: baseline;
   margin: 24px -40px 0;
   border-top: 2px solid var(--ink);
   z-index: 50;
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+}
+.sticky-target__name {
+  flex: 1 1 auto;
+}
+.sticky-target__divider {
+  width: 1px;
+  align-self: stretch;
+  background: var(--ink-2);
+  margin: 0 2px;
 }
 .sticky-target__name {
   font-family: var(--display);

@@ -43,6 +43,20 @@ RE_CLASS_DECL = re.compile(
 # string literals for user-facing tags.
 RE_TAG_STRING = re.compile(r'\[Tag\("([^"]+)"\)\]')
 
+# Food item nutritional fields (autogen Food/*.cs files):
+#   public override float Calories                  => 210;
+#   public override Nutrients Nutrition             => new Nutrients() { Carbs = 13, Fat = 0, Protein = 2, Vitamins = 0};
+RE_FOOD_CALORIES = re.compile(
+    r'public\s+override\s+float\s+Calories\s*=>\s*(\d+(?:\.\d+)?)f?\s*;'
+)
+RE_FOOD_NUTRITION = re.compile(
+    r'new\s+Nutrients\s*\(\s*\)\s*\{\s*'
+    r'Carbs\s*=\s*(\d+(?:\.\d+)?)f?\s*,\s*'
+    r'Fat\s*=\s*(\d+(?:\.\d+)?)f?\s*,\s*'
+    r'Protein\s*=\s*(\d+(?:\.\d+)?)f?\s*,\s*'
+    r'Vitamins\s*=\s*(\d+(?:\.\d+)?)f?\s*\}'
+)
+
 
 def _attribute_block_before(text: str, class_start: int) -> str:
     """Walk backwards from `class_start` over the contiguous attribute stack."""
@@ -73,6 +87,9 @@ def main() -> None:
     item_to_tags: dict[str, set[str]] = defaultdict(set)
     tag_to_items: dict[str, set[str]] = defaultdict(set)
     item_file: dict[str, str] = {}
+    # Per-item food data — populated only from Food/*.cs files where the Item
+    # class declares Calories + a Nutrients() literal.
+    food: dict[str, dict] = {}
 
     if not ROOT.is_dir():
         raise SystemExit(
@@ -106,17 +123,41 @@ def main() -> None:
                 for t in tags:
                     tag_to_items[t].add(name)
 
+            # Food data is class-level fields on the FoodItem subclass; each
+            # Food/*.cs file has exactly one such Item class, so scanning the
+            # file body once is sufficient.
+            if cat == "Food":
+                cal_m = RE_FOOD_CALORIES.search(text)
+                nut_m = RE_FOOD_NUTRITION.search(text)
+                if cal_m or nut_m:
+                    # Pull the file's first *Item class as the owner.
+                    owner = None
+                    for cm in RE_CLASS_DECL.finditer(text):
+                        if cm.group(1).endswith("Item"):
+                            owner = cm.group(1)
+                            break
+                    if owner:
+                        food[owner] = {
+                            "calories": float(cal_m.group(1)) if cal_m else None,
+                            "carbs": float(nut_m.group(1)) if nut_m else None,
+                            "fat": float(nut_m.group(2)) if nut_m else None,
+                            "protein": float(nut_m.group(3)) if nut_m else None,
+                            "vitamins": float(nut_m.group(4)) if nut_m else None,
+                        }
+
     # Convert sets to sorted lists for JSON
     out = {
         "tagToItems": {t: sorted(v) for t, v in sorted(tag_to_items.items())},
         "itemToTags": {i: sorted(v) for i, v in sorted(item_to_tags.items())},
         "itemFile": dict(sorted(item_file.items())),
+        "food": dict(sorted(food.items())),
     }
     here = Path(__file__).parent
     (here / "tags.json").write_text(json.dumps(out, indent=2))
 
     print(f"Items found: {len(item_file)}")
     print(f"Distinct tags: {len(tag_to_items)}")
+    print(f"Food items with nutrition: {len(food)}")
     print()
 
     # Report coverage of the recipe-ingredient tags we care about.

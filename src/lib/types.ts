@@ -23,11 +23,23 @@ export interface Recipe {
   table: string | null;
 }
 
+export interface FoodInfo {
+  // Energy granted to the player on consumption.
+  calories: number | null;
+  // Macronutrient values used in Eco's nutrition multiplier system. Each
+  // is the integer the FoodItem class declares in its Nutrients() literal.
+  carbs: number | null;
+  fat: number | null;
+  protein: number | null;
+  vitamins: number | null;
+}
+
 export interface EcoData {
   recipes: Recipe[];
   producers: Record<string, string[]>; // itemId -> recipeIds producing it
   tagToItems: Record<string, string[]>; // tag -> qualifying itemIds
   items: Record<string, string>; // itemId -> human-readable display name
+  food: Record<string, FoodInfo>;       // itemId -> nutrition (food items only)
 }
 
 // Node kinds in the resolved breakdown tree.

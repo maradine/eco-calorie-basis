@@ -57,6 +57,7 @@ def main():
         "producers": d["producers"],
         "tagToItems": t["tagToItems"],
         "items": items,
+        "food": t.get("food", {}),
     }
     out = APP_ROOT / "public" / "eco-data.json"
     out.write_text(json.dumps(bundle))
