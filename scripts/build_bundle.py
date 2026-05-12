@@ -57,13 +57,21 @@ def main():
 
     items = {i: humanize(i) for i in sorted(all_items)}
 
+    # Talents (optional) — parse_talents.py emits a sibling talents.json.
+    talents_json = HERE / "talents.json"
+    talents = (
+        json.loads(talents_json.read_text()) if talents_json.exists() else {}
+    )
+
     bundle = {
         "recipes": compact_recipes,
         "producers": d["producers"],
         "tagToItems": t["tagToItems"],
+        "itemToTags": t.get("itemToTags", {}),
         "items": items,
         "food": t.get("food", {}),
         "skills": t.get("skills", {}),
+        "talents": talents,
     }
     out = APP_ROOT / "public" / "eco-data.json"
     out.write_text(json.dumps(bundle))

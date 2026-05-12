@@ -19,6 +19,9 @@ export default function App() {
   // to 0 (no labor reduction). Kept across target changes since it reflects
   // the player, not the recipe.
   const [skillLevels, setSkillLevels] = useState<Record<string, number>>({});
+  // Talent investment per talent id. 0 = not learned; 1..maxLevel = invested.
+  // For flat talents only 0/1 is meaningful. Auto-clears below required skill.
+  const [talentLevels, setTalentLevels] = useState<Record<string, number>>({});
   const [view, setView] = useState<ViewMode>("diagram");
 
   useEffect(() => {
@@ -34,8 +37,8 @@ export default function App() {
 
   const resolver = useMemo(() => {
     if (!data) return null;
-    return new Resolver(data, { choices, rawCosts, skillLevels });
-  }, [data, choices, rawCosts, skillLevels]);
+    return new Resolver(data, { choices, rawCosts, skillLevels, talentLevels });
+  }, [data, choices, rawCosts, skillLevels, talentLevels]);
 
   const tree: TreeNode | null = useMemo(() => {
     if (!resolver || !selectedItem) return null;
@@ -128,26 +131,96 @@ export default function App() {
                     const info = data.skills[skillId];
                     const level = skillLevels[skillId] ?? 0;
                     const mult = info.multipliers[level] ?? 1;
+                    const talents = Object.entries(data.talents ?? {})
+                      .filter(([, t]) => t.ownerSkill === skillId)
+                      .sort(([, a], [, b]) =>
+                        a.skillLevelRequired - b.skillLevelRequired ||
+                        a.displayName.localeCompare(b.displayName),
+                      );
                     return (
-                      <div key={skillId} className="skills__row">
-                        <div className="skills__name">{info.displayName}</div>
-                        <input
-                          type="range"
-                          min={0}
-                          max={info.maxLevel}
-                          value={level}
-                          className="skills__slider"
-                          onChange={(e) =>
-                            setSkillLevels({
-                              ...skillLevels,
-                              [skillId]: Number(e.target.value),
-                            })
-                          }
-                        />
-                        <div className="skills__level">Lvl {level}</div>
-                        <div className="skills__mult">
-                          ×{mult.toFixed(2)}
+                      <div key={skillId} className="skills__block">
+                        <div className="skills__row">
+                          <div className="skills__name">{info.displayName}</div>
+                          <input
+                            type="range"
+                            min={0}
+                            max={info.maxLevel}
+                            value={level}
+                            className="skills__slider"
+                            onChange={(e) =>
+                              setSkillLevels({
+                                ...skillLevels,
+                                [skillId]: Number(e.target.value),
+                              })
+                            }
+                          />
+                          <div className="skills__level">Lvl {level}</div>
+                          <div className="skills__mult">×{mult.toFixed(2)}</div>
                         </div>
+                        {talents.length > 0 && (
+                          <div className="skills__talents">
+                            {talents.map(([tid, t]) => {
+                              const locked = level < t.skillLevelRequired;
+                              const tlevel = locked ? 0 : talentLevels[tid] ?? 0;
+                              return (
+                                <div
+                                  key={tid}
+                                  className={
+                                    "skills__talent" +
+                                    (locked ? " skills__talent--locked" : "")
+                                  }
+                                >
+                                  <span className="skills__talent-req">
+                                    L{t.skillLevelRequired}
+                                  </span>
+                                  <span className="skills__talent-name">
+                                    {t.displayName}
+                                  </span>
+                                  {t.hasLevels ? (
+                                    <input
+                                      type="range"
+                                      min={0}
+                                      max={t.maxLevel}
+                                      value={tlevel}
+                                      disabled={locked}
+                                      className="skills__talent-slider"
+                                      onChange={(e) =>
+                                        setTalentLevels({
+                                          ...talentLevels,
+                                          [tid]: Number(e.target.value),
+                                        })
+                                      }
+                                    />
+                                  ) : (
+                                    <input
+                                      type="checkbox"
+                                      checked={tlevel > 0}
+                                      disabled={locked}
+                                      className="skills__talent-check"
+                                      onChange={(e) =>
+                                        setTalentLevels({
+                                          ...talentLevels,
+                                          [tid]: e.target.checked ? 1 : 0,
+                                        })
+                                      }
+                                    />
+                                  )}
+                                  <span className="skills__talent-level">
+                                    {locked
+                                      ? "locked"
+                                      : t.hasLevels
+                                        ? tlevel > 0
+                                          ? `lv ${tlevel}`
+                                          : "off"
+                                        : tlevel > 0
+                                          ? "on"
+                                          : "off"}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     );
                   })}

@@ -1,0 +1,1725 @@
+{
+  "AdvancedBakingAbundantTalent": {
+    "displayName": "Stuff it",
+    "ownerSkill": "AdvancedBakingSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.85,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "AdvancedBakingFruitCentricTalent": {
+    "displayName": "Fruit Centric",
+    "ownerSkill": "AdvancedBakingSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.85,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "AdvancedCookingFullyStaffedTalent": {
+    "displayName": "Fully Staffed",
+    "ownerSkill": "AdvancedCookingSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.85,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [
+          "AdvancedCookingSkill"
+        ],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "AdvancedCookingInaBowlTalent": {
+    "displayName": "In a Bowl",
+    "ownerSkill": "AdvancedCookingSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.9,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "AdvancedCookingTakeOutTalent": {
+    "displayName": "Take Out",
+    "ownerSkill": "AdvancedCookingSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.9,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "AdvancedMasonryCoastalRockTalent": {
+    "displayName": "Coastal Rock",
+    "ownerSkill": "AdvancedMasonrySkill",
+    "skillLevelRequired": 3,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "CappedMultiplicative",
+        "value": 0.95,
+        "cap": 0.75,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "AdvancedMasonrySmoothStoneTalent": {
+    "displayName": "Smooth Stone",
+    "ownerSkill": "AdvancedMasonrySkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "LaborCost",
+        "kind": "Multiplicative",
+        "value": 0.9,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "AdvancedMasonrySubTerrainSourcedTalent": {
+    "displayName": "Sub-terrain Sourced",
+    "ownerSkill": "AdvancedMasonrySkill",
+    "skillLevelRequired": 3,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "CappedMultiplicative",
+        "value": 0.95,
+        "cap": 0.75,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "AdvancedSmeltingMetallurgyImprovementsTalent": {
+    "displayName": "Metallurgy Improvements",
+    "ownerSkill": "AdvancedSmeltingSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.95,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "AdvancedSmeltingRollingSteelTalent": {
+    "displayName": "Rolling Steel",
+    "ownerSkill": "AdvancedSmeltingSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.925,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      },
+      {
+        "action": "LaborCost",
+        "kind": "Multiplicative",
+        "value": 0.95,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [
+          "AdvancedSmeltingSkill"
+        ],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "AdvancedSmeltingSteelProcessingTalent": {
+    "displayName": "Steel Processing",
+    "ownerSkill": "AdvancedSmeltingSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.9,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "BakingFilledMealsTalent": {
+    "displayName": "Filled Meals",
+    "ownerSkill": "BakingSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.85,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      },
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 1.05,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "BakingSweetTalent": {
+    "displayName": "Sweet",
+    "ownerSkill": "BakingSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 1.05,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      },
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.85,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "BasicEngineeringVehicularDesignTalent": {
+    "displayName": "Vehicular Design",
+    "ownerSkill": "BasicEngineeringSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.85,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "BasicEngineeringWateristhewayTalent": {
+    "displayName": "Water is the way!",
+    "ownerSkill": "BasicEngineeringSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.9,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "BasicEngineeringWindequalsenergyTalent": {
+    "displayName": "Wind equals energy!",
+    "ownerSkill": "BasicEngineeringSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.9,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "BlacksmithBetterAxesTalent": {
+    "displayName": "Better Axes",
+    "ownerSkill": "BlacksmithSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "CappedMultiplicative",
+        "value": 1.05,
+        "cap": 1.25,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "BlacksmithGardenToolsTalent": {
+    "displayName": "Garden Tools",
+    "ownerSkill": "BlacksmithSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "CappedMultiplicative",
+        "value": 1.05,
+        "cap": 1.25,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "ButcheryLocalFaunaTalent": {
+    "displayName": "Local Fauna",
+    "ownerSkill": "ButcherySkill",
+    "skillLevelRequired": 3,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "Yield",
+        "kind": "Additive",
+        "value": 1.0,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "ButcheryPoorCutsTalent": {
+    "displayName": "Poor Cuts",
+    "ownerSkill": "ButcherySkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.8,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "ButcheryPrimeExamplesTalent": {
+    "displayName": "Prime Examples",
+    "ownerSkill": "ButcherySkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.85,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "ButcheryScrappedButUsefulTalent": {
+    "displayName": "Scrapped But Useful",
+    "ownerSkill": "ButcherySkill",
+    "skillLevelRequired": 3,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "Yield",
+        "kind": "Additive",
+        "value": 3.0,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "CampfireCookingSideDishesTalent": {
+    "displayName": "Side Dishes",
+    "ownerSkill": "CampfireCookingSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.75,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "CampfireCookingStewGourmandTalent": {
+    "displayName": "Stew Gourmand",
+    "ownerSkill": "CampfireCookingSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.75,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "CarpentryExtraEffortTalent": {
+    "displayName": "Extra Effort",
+    "ownerSkill": "CarpentrySkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "LaborCost",
+        "kind": "Multiplicative",
+        "value": 1.2,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [
+          "CarpentrySkill"
+        ],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "CarpentryFineCarpentryTalent": {
+    "displayName": "Fine Carpentry",
+    "ownerSkill": "CarpentrySkill",
+    "skillLevelRequired": 3,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "CappedMultiplicative",
+        "value": 0.88,
+        "cap": 0.4,
+        "lowerIsBetter": true,
+        "skills": [
+          "CarpentrySkill"
+        ],
+        "tags": [
+          "Housing"
+        ],
+        "stations": []
+      },
+      {
+        "action": "LaborCost",
+        "kind": "CappedMultiplicative",
+        "value": 0.9,
+        "cap": 0.5,
+        "lowerIsBetter": true,
+        "skills": [
+          "CarpentrySkill"
+        ],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "CarpentryLumberInvestmentTalent": {
+    "displayName": "Lumber Investment",
+    "ownerSkill": "CarpentrySkill",
+    "skillLevelRequired": 3,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "CappedMultiplicative",
+        "value": 0.92,
+        "cap": 0.6,
+        "lowerIsBetter": true,
+        "skills": [
+          "CarpentrySkill"
+        ],
+        "tags": [
+          "Lumber"
+        ],
+        "stations": []
+      },
+      {
+        "action": "LaborCost",
+        "kind": "CappedMultiplicative",
+        "value": 0.92,
+        "cap": 0.6,
+        "lowerIsBetter": true,
+        "skills": [
+          "CarpentrySkill"
+        ],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "CarpentryQualityControlTalent": {
+    "displayName": "Quality Control",
+    "ownerSkill": "CarpentrySkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "LaborCost",
+        "kind": "Multiplicative",
+        "value": 0.85,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [
+          "CarpentrySkill"
+        ],
+        "tags": [],
+        "stations": [
+          "SawmillObject"
+        ]
+      }
+    ]
+  },
+  "CompositesHardwoodExpertTalent": {
+    "displayName": "Hardwood Expert",
+    "ownerSkill": "CompositesSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "CappedMultiplicative",
+        "value": 0.9,
+        "cap": 0.5,
+        "lowerIsBetter": true,
+        "skills": [
+          "CompositesSkill"
+        ],
+        "tags": [
+          "HardwoodLumber"
+        ],
+        "stations": []
+      }
+    ]
+  },
+  "CompositesLessonsLearnedTalent": {
+    "displayName": "Lessons learned",
+    "ownerSkill": "CompositesSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "LaborCost",
+        "kind": "Multiplicative",
+        "value": 0.75,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [
+          "CompositesSkill"
+        ],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "CompositesSoftwoodExpertTalent": {
+    "displayName": "Softwood Expert",
+    "ownerSkill": "CompositesSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "CappedMultiplicative",
+        "value": 0.9,
+        "cap": 0.5,
+        "lowerIsBetter": true,
+        "skills": [
+          "CompositesSkill"
+        ],
+        "tags": [
+          "SoftwoodLumber"
+        ],
+        "stations": []
+      }
+    ]
+  },
+  "CookingDualDexterityTalent": {
+    "displayName": "Extra Pans",
+    "ownerSkill": "CookingSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "LaborCost",
+        "kind": "Multiplicative",
+        "value": 0.85,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [
+          "CookingSkill"
+        ],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "CookingExtraPansTalent": {
+    "displayName": "Extra Pans",
+    "ownerSkill": "CookingSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "LaborCost",
+        "kind": "Multiplicative",
+        "value": 0.85,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [
+          "CookingSkill"
+        ],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "CookingFastFoodTalent": {
+    "displayName": "Fast Food",
+    "ownerSkill": "CookingSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.85,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "CookingSomethingFishyTalent": {
+    "displayName": "Something Fishy",
+    "ownerSkill": "CookingSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.85,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "ElectronicsHeavyEquipmentTalent": {
+    "displayName": "Heavy Equipment",
+    "ownerSkill": "ElectronicsSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.85,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [
+          "ElectronicsSkill"
+        ],
+        "tags": [
+          "Crafting Table"
+        ],
+        "stations": []
+      }
+    ]
+  },
+  "ElectronicsQualityOfLifeTalent": {
+    "displayName": "Quality of Life",
+    "ownerSkill": "ElectronicsSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.75,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [
+          "ElectronicsSkill"
+        ],
+        "tags": [
+          "Housing"
+        ],
+        "stations": []
+      }
+    ]
+  },
+  "FarmingNaturalSelectionTalent": {
+    "displayName": "Natural Selection",
+    "ownerSkill": "FarmingSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "LaborCost",
+        "kind": "Multiplicative",
+        "value": 0.7,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [
+          "FarmingSkill"
+        ],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "FarmingNutrientDeficientTalent": {
+    "displayName": "Nutrient Deficient",
+    "ownerSkill": "FarmingSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.9,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [
+          "FarmingSkill"
+        ],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "FertilizersOrganicAbundanceTalent": {
+    "displayName": "Organic Abundance",
+    "ownerSkill": "FertilizersSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.85,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "FertilizersRefinedProcessingTalent": {
+    "displayName": "Refined Processing",
+    "ownerSkill": "FertilizersSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.85,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "FertilizersSustainablePracticeTalent": {
+    "displayName": "Sustainable Practice",
+    "ownerSkill": "FertilizersSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "Yield",
+        "kind": "Additive",
+        "value": 1.0,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [
+          "FertilizersSkill"
+        ],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "GatheringFruituristTalent": {
+    "displayName": "Fruiturist",
+    "ownerSkill": "GatheringSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "HarvestYield",
+        "kind": "Additive",
+        "value": 1.0,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [
+          "Fruit"
+        ],
+        "stations": []
+      }
+    ]
+  },
+  "GatheringGrainiacTalent": {
+    "displayName": "Grainiac",
+    "ownerSkill": "GatheringSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "HarvestYield",
+        "kind": "Additive",
+        "value": 1.0,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [
+          "Grain"
+        ],
+        "stations": []
+      }
+    ]
+  },
+  "GatheringNaturalGathererTalent": {
+    "displayName": "Natural Gatherer",
+    "ownerSkill": "GatheringSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "HarvestYield",
+        "kind": "Additive",
+        "value": 1.0,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [
+          "Crop"
+        ],
+        "stations": []
+      }
+    ]
+  },
+  "GlassworkingBrightApplicationsTalent": {
+    "displayName": "Bright Applications",
+    "ownerSkill": "GlassworkingSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "Yield",
+        "kind": "Additive",
+        "value": 1.0,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "GlassworkingDoubleSpeedTalent": {
+    "displayName": "Double Speed",
+    "ownerSkill": "GlassworkingSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.85,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "GlassworkingFramedTalent": {
+    "displayName": "Framed",
+    "ownerSkill": "GlassworkingSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.9,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "GlassworkingTailoredGlassTalent": {
+    "displayName": "Tailored Glass",
+    "ownerSkill": "GlassworkingSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.9,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "IndustryElectricalEfficiencyTalent": {
+    "displayName": "Electrical Efficiency",
+    "ownerSkill": "IndustrySkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.9,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [
+          "IndustrySkill"
+        ],
+        "tags": [],
+        "stations": [
+          "ElectronicsAssemblyObject"
+        ]
+      }
+    ]
+  },
+  "IndustryPrecisionToolingTalent": {
+    "displayName": "Precision Tooling",
+    "ownerSkill": "IndustrySkill",
+    "skillLevelRequired": 3,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "CappedMultiplicative",
+        "value": 0.9,
+        "cap": 0.6,
+        "lowerIsBetter": true,
+        "skills": [
+          "IndustrySkill"
+        ],
+        "tags": [
+          "Parts"
+        ],
+        "stations": []
+      }
+    ]
+  },
+  "IndustryRoboticAssistanceTalent": {
+    "displayName": "Robotic Assistance",
+    "ownerSkill": "IndustrySkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.9,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [
+          "IndustrySkill"
+        ],
+        "tags": [],
+        "stations": [
+          "RoboticAssemblyLineObject"
+        ]
+      }
+    ]
+  },
+  "IndustrySkilledLaborTalent": {
+    "displayName": "Skilled Labor",
+    "ownerSkill": "IndustrySkill",
+    "skillLevelRequired": 3,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "CappedMultiplicative",
+        "value": 0.9,
+        "cap": 0.6,
+        "lowerIsBetter": true,
+        "skills": [
+          "IndustrySkill"
+        ],
+        "tags": [
+          "Vehicles"
+        ],
+        "stations": []
+      },
+      {
+        "action": "LaborCost",
+        "kind": "CappedMultiplicative",
+        "value": 1.3,
+        "cap": 2.2,
+        "lowerIsBetter": true,
+        "skills": [
+          "IndustrySkill"
+        ],
+        "tags": [
+          "Vehicles"
+        ],
+        "stations": []
+      }
+    ]
+  },
+  "LoggingWoodBurnerTalent": {
+    "displayName": "Wood burner!",
+    "ownerSkill": "LoggingSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "Yield",
+        "kind": "Additive",
+        "value": 1.0,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "MasonryMineralBakingTalent": {
+    "displayName": "Mineral Baking",
+    "ownerSkill": "MasonrySkill",
+    "skillLevelRequired": 6,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "Yield",
+        "kind": "Additive",
+        "value": 1.0,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "MasonrySetInStoneTalent": {
+    "displayName": "Set in Stone",
+    "ownerSkill": "MasonrySkill",
+    "skillLevelRequired": 3,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.9,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [
+          "MasonrySkill"
+        ],
+        "tags": [
+          "Constructable"
+        ],
+        "stations": []
+      }
+    ]
+  },
+  "MasonryStoneMixingTalent": {
+    "displayName": "Stone Mixing",
+    "ownerSkill": "MasonrySkill",
+    "skillLevelRequired": 3,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.85,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [
+          "MasonrySkill"
+        ],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "MechanicsImprovedAssemblyTalent": {
+    "displayName": "Improved Assembly",
+    "ownerSkill": "MechanicsSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "CappedMultiplicative",
+        "value": 0.95,
+        "cap": 0.75,
+        "lowerIsBetter": true,
+        "skills": [
+          "MechanicsSkill"
+        ],
+        "tags": [],
+        "stations": [
+          "AssemblyLineObject"
+        ]
+      }
+    ]
+  },
+  "MechanicsPressOnTalent": {
+    "displayName": "Press On",
+    "ownerSkill": "MechanicsSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.8,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": [
+          "ScrewPressObject"
+        ]
+      }
+    ]
+  },
+  "MechanicsShapingUpTalent": {
+    "displayName": "Shaping Up",
+    "ownerSkill": "MechanicsSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.9,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": [
+          "ShaperObject"
+        ]
+      }
+    ]
+  },
+  "MillingFlourItTalent": {
+    "displayName": "Flour It!",
+    "ownerSkill": "MillingSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "CappedMultiplicative",
+        "value": 0.95,
+        "cap": 0.75,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "MillingSugarRushTalent": {
+    "displayName": "Sugar Rush",
+    "ownerSkill": "MillingSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "CappedMultiplicative",
+        "value": 0.95,
+        "cap": 0.75,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "OilDrillingFuelFocusTalent": {
+    "displayName": "Fuel Focus",
+    "ownerSkill": "OilDrillingSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.95,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "OilDrillingImprovedExtractionTalent": {
+    "displayName": "Improved Extraction",
+    "ownerSkill": "OilDrillingSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "LaborCost",
+        "kind": "Multiplicative",
+        "value": 0.5,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "OilDrillingSyntheticMaterialsTalent": {
+    "displayName": "Synthetic Materials",
+    "ownerSkill": "OilDrillingSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.9,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "PotteryBrickLayerTalent": {
+    "displayName": "Brick Layer",
+    "ownerSkill": "PotterySkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.9,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [
+          "PotterySkill"
+        ],
+        "tags": [
+          "Constructable"
+        ],
+        "stations": []
+      },
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 1.05,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [
+          "PotterySkill"
+        ],
+        "tags": [
+          "Housing"
+        ],
+        "stations": []
+      }
+    ]
+  },
+  "PotteryClayMasteryTalent": {
+    "displayName": "Clay Mastery",
+    "ownerSkill": "PotterySkill",
+    "skillLevelRequired": 3,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "LaborCost",
+        "kind": "Multiplicative",
+        "value": 0.875,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [
+          "PotterySkill"
+        ],
+        "tags": [],
+        "stations": [
+          "PotteryTableObject"
+        ]
+      }
+    ]
+  },
+  "PotteryMassProductionTalent": {
+    "displayName": "Mass Production",
+    "ownerSkill": "PotterySkill",
+    "skillLevelRequired": 3,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "LaborCost",
+        "kind": "Multiplicative",
+        "value": 0.875,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [
+          "PotterySkill"
+        ],
+        "tags": [],
+        "stations": [
+          "KilnObject"
+        ]
+      }
+    ]
+  },
+  "PotteryPorcelainPolishTalent": {
+    "displayName": "Porcelain Polish",
+    "ownerSkill": "PotterySkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.9,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [
+          "PotterySkill"
+        ],
+        "tags": [
+          "Housing"
+        ],
+        "stations": []
+      }
+    ]
+  },
+  "ShipwrightPlankingTalent": {
+    "displayName": "Planking",
+    "ownerSkill": "ShipwrightSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "CappedMultiplicative",
+        "value": 0.9,
+        "cap": 0.5,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "ShipwrightRiveterTalent": {
+    "displayName": "Riveter",
+    "ownerSkill": "ShipwrightSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "CappedMultiplicative",
+        "value": 0.9,
+        "cap": 0.5,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "ShipwrightRopeMakerTalent": {
+    "displayName": "Rope Maker",
+    "ownerSkill": "ShipwrightSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "LaborCost",
+        "kind": "Multiplicative",
+        "value": 0.6,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "ShipwrightShipBuilderTalent": {
+    "displayName": "Ship Builder",
+    "ownerSkill": "ShipwrightSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "LaborCost",
+        "kind": "Multiplicative",
+        "value": 0.8,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [
+          "ShipwrightSkill"
+        ],
+        "tags": [
+          "Vehicles"
+        ],
+        "stations": []
+      }
+    ]
+  },
+  "SmeltingCopperEnrichmentTalent": {
+    "displayName": "Copper Enrichment",
+    "ownerSkill": "SmeltingSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "CappedMultiplicative",
+        "value": 0.94,
+        "cap": 0.7,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      },
+      {
+        "action": "ResourceCost",
+        "kind": "CappedMultiplicative",
+        "value": 1.03,
+        "cap": 1.15,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "SmeltingGildedExpertTalent": {
+    "displayName": "Gilded Expert",
+    "ownerSkill": "SmeltingSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": true,
+    "maxLevel": 5,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "CappedMultiplicative",
+        "value": 0.94,
+        "cap": 0.7,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      },
+      {
+        "action": "ResourceCost",
+        "kind": "CappedMultiplicative",
+        "value": 1.03,
+        "cap": 1.15,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "TailoringCustomMadeTalent": {
+    "displayName": "Custom Made",
+    "ownerSkill": "TailoringSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.75,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [
+          "Clothes",
+          "Housing"
+        ],
+        "stations": []
+      },
+      {
+        "action": "LaborCost",
+        "kind": "Multiplicative",
+        "value": 1.2,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [
+          "Clothes",
+          "Housing"
+        ],
+        "stations": []
+      }
+    ]
+  },
+  "TailoringFlooringFitterTalent": {
+    "displayName": "Flooring Fitter",
+    "ownerSkill": "TailoringSkill",
+    "skillLevelRequired": 6,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.85,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [
+          "Constructable"
+        ],
+        "stations": []
+      }
+    ]
+  },
+  "TailoringModernMaterialsTalent": {
+    "displayName": "Modern Materials",
+    "ownerSkill": "TailoringSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.85,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  },
+  "TailoringNaturalFibersTalent": {
+    "displayName": "Natural Fibers",
+    "ownerSkill": "TailoringSkill",
+    "skillLevelRequired": 3,
+    "hasLevels": false,
+    "maxLevel": 1,
+    "effects": [
+      {
+        "action": "ResourceCost",
+        "kind": "Multiplicative",
+        "value": 0.85,
+        "cap": null,
+        "lowerIsBetter": true,
+        "skills": [],
+        "tags": [],
+        "stations": []
+      }
+    ]
+  }
+}

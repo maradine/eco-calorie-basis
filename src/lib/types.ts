@@ -39,6 +39,44 @@ export interface SkillInfo {
 // is missing.
 export type SkillLevels = Record<string, number>;
 
+// Action kinds we model. Other Eco BonusActions (CraftTime, Power,
+// Durability, etc.) are filtered out at parse time — they don't affect the
+// calorie basis we're computing.
+export type BonusAction =
+  | "LaborCost"      // multiplies recipe.labor
+  | "ResourceCost"   // multiplies recipe ingredient quantities
+  | "HarvestYield"   // additive per-action yield boost (gathering)
+  | "Yield";         // multiplicative output boost
+
+export interface TalentEffect {
+  action: BonusAction;
+  // Multiplicative = flat one-shot; CappedMultiplicative scales per level
+  // bounded by `cap`; Additive accumulates +value per level (used by yield
+  // talents that say "+1 wheat per swing per level").
+  kind: "Multiplicative" | "CappedMultiplicative" | "Additive" | string;
+  value: number;
+  cap: number | null;
+  lowerIsBetter: boolean;
+  // Cause filters — empty means "applies regardless of this dimension".
+  skills: string[];
+  tags: string[];
+  stations: string[];
+}
+
+export interface TalentInfo {
+  displayName: string;
+  ownerSkill: string;
+  // Player needs at least this many levels in `ownerSkill` to unlock the talent.
+  skillLevelRequired: number;
+  // True when the talent's effects scale with talent level. False = checkbox.
+  hasLevels: boolean;
+  maxLevel: number;
+  effects: TalentEffect[];
+}
+
+// User-selected per-talent level. Talent disabled = 0; enabled = 1..maxLevel.
+export type TalentLevels = Record<string, number>;
+
 export interface FoodInfo {
   // Energy granted to the player on consumption.
   calories: number | null;
@@ -55,8 +93,12 @@ export interface EcoData {
   producers: Record<string, string[]>; // itemId -> recipeIds producing it
   tagToItems: Record<string, string[]>; // tag -> qualifying itemIds
   items: Record<string, string>; // itemId -> human-readable display name
+  // Tag membership per item — used to filter talent effects scoped via
+  // ItemTags (e.g. Lumber, Housing, Fruit).
+  itemToTags: Record<string, string[]>;
   food: Record<string, FoodInfo>;       // itemId -> nutrition (food items only)
   skills: Record<string, SkillInfo>;    // skillId -> labor-multiplier table
+  talents: Record<string, TalentInfo>;  // talentId -> bonus definitions
 }
 
 // Node kinds in the resolved breakdown tree.

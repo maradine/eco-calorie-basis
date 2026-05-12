@@ -1,8 +1,11 @@
 import type {
+  BonusAction,
   Choices,
   EcoData,
   Recipe,
   SkillLevels,
+  TalentEffect,
+  TalentLevels,
   TreeNode,
 } from "./types";
 
@@ -29,6 +32,7 @@ export interface ResolveOptions {
   choices?: Choices;
   rawCosts?: Record<string, number>;
   skillLevels?: SkillLevels;
+  talentLevels?: TalentLevels;
 }
 
 export class Resolver {
@@ -38,12 +42,14 @@ export class Resolver {
   private choices: Choices;
   private rawCosts: Record<string, number>;
   private skillLevels: SkillLevels;
+  private talentLevels: TalentLevels;
 
   constructor(private data: EcoData, opts: ResolveOptions = {}) {
     this.recipesById = new Map(data.recipes.map((r) => [r.id, r]));
     this.choices = opts.choices ?? {};
     this.rawCosts = opts.rawCosts ?? {};
     this.skillLevels = opts.skillLevels ?? {};
+    this.talentLevels = opts.talentLevels ?? {};
   }
 
   /**
@@ -60,6 +66,11 @@ export class Resolver {
     this.memo.clear();
   }
 
+  setTalentLevels(levels: TalentLevels) {
+    this.talentLevels = levels;
+    this.memo.clear();
+  }
+
   /** Labor-cost multiplier for a recipe given its labor-governing skill. */
   private skillMultiplier(skillId: string | null | undefined): number {
     if (!skillId) return 1;
@@ -68,6 +79,85 @@ export class Resolver {
     if (!info) return 1;
     const m = info.multipliers[level];
     return typeof m === "number" ? m : 1;
+  }
+
+  /** Compose every enabled talent's effect on a single (recipe, action)
+   *  combination into one cost factor. Returns 1 (no change) when nothing
+   *  applies. Iterating per-edge keeps the math local and side-effect-free. */
+  private talentMultiplier(
+    recipe: Recipe | null,
+    item: string | null,
+    action: BonusAction,
+  ): number {
+    let factor = 1;
+    const talents = this.data.talents ?? {};
+    for (const tid in this.talentLevels) {
+      const level = this.talentLevels[tid] ?? 0;
+      if (level <= 0) continue;
+      const t = talents[tid];
+      if (!t) continue;
+      for (const eff of t.effects) {
+        if (eff.action !== action) continue;
+        if (!this.effectMatches(eff, recipe, item)) continue;
+        factor *= this.effectFactor(eff, level);
+      }
+    }
+    return factor;
+  }
+
+  /** Cause-filter check: a talent effect only applies when all of its
+   *  filters (skill, item tag, crafting station) are satisfied. Empty
+   *  filter lists mean "no restriction in this dimension". */
+  private effectMatches(
+    eff: TalentEffect,
+    recipe: Recipe | null,
+    item: string | null,
+  ): boolean {
+    if (eff.skills.length > 0) {
+      if (!recipe?.laborSkill || !eff.skills.includes(recipe.laborSkill)) {
+        return false;
+      }
+    }
+    if (eff.stations.length > 0) {
+      if (!recipe?.table || !eff.stations.includes(recipe.table)) {
+        return false;
+      }
+    }
+    if (eff.tags.length > 0) {
+      // Tags filter against the produced/affected item's tag set. For
+      // recipes that's the primary output item; for raw harvest it's the
+      // item itself.
+      const probe = item ?? recipe?.outputs[0]?.item;
+      if (!probe) return false;
+      const tags = this.data.itemToTags?.[probe] ?? [];
+      if (!eff.tags.some((t) => tags.includes(t))) return false;
+    }
+    return true;
+  }
+
+  /** Translate one talent effect at a given player-invested level into a
+   *  cost-side multiplier. Yield effects flip to 1/yield since we're
+   *  shrinking the per-unit cost (more output per swing = cheaper per unit). */
+  private effectFactor(eff: TalentEffect, level: number): number {
+    const isYield = eff.action === "HarvestYield" || eff.action === "Yield";
+    if (eff.kind === "Multiplicative") {
+      // One-shot effect — `level >= 1` enables it.
+      return isYield && eff.value !== 0 ? 1 / eff.value : eff.value;
+    }
+    if (eff.kind === "CappedMultiplicative") {
+      const exp = Math.pow(eff.value, level);
+      const clamped = eff.lowerIsBetter
+        ? Math.max(eff.cap ?? 0, exp)
+        : Math.min(eff.cap ?? Infinity, exp);
+      return isYield && clamped !== 0 ? 1 / clamped : clamped;
+    }
+    if (eff.kind === "Additive") {
+      // Yield-side additive: +value per level → divides per-unit cost by
+      // (1 + value*level). Labor/resource additive: subtracts value*level.
+      if (isYield) return 1 / (1 + eff.value * level);
+      return Math.max(0, 1 - eff.value * level);
+    }
+    return 1;
   }
 
   /** Public entry point. Returns a scaled tree for `qty` of `item`. */
@@ -91,9 +181,12 @@ export class Resolver {
       let node: TreeNode;
 
       if (producers.length === 0) {
-        // Raw harvest leaf
-        const cost = this.rawCosts[item] ?? DEFAULT_RAW_COST;
-        node = { kind: "raw", item, qty: 1, totalCalories: cost };
+        // Raw harvest leaf — apply yield talents that target this item's tags.
+        const baseCost = this.rawCosts[item] ?? DEFAULT_RAW_COST;
+        const yieldFactor =
+          this.talentMultiplier(null, item, "HarvestYield") *
+          this.talentMultiplier(null, item, "Yield");
+        node = { kind: "raw", item, qty: 1, totalCalories: baseCost * yieldFactor };
       } else {
         const overrideKey = `item:${item}`;
         const chosen = this.choices[overrideKey];
@@ -102,8 +195,11 @@ export class Resolver {
         // always dig sand/dirt out of the world rather than spin up a rocker
         // box. Pinning a specific recipe via the override switches back.
         if (gatherable && (!chosen || chosen === GATHER_CHOICE)) {
-          const cost = this.rawCosts[item] ?? DEFAULT_RAW_COST;
-          node = { kind: "raw", item, qty: 1, totalCalories: cost };
+          const baseCost = this.rawCosts[item] ?? DEFAULT_RAW_COST;
+          const yieldFactor =
+            this.talentMultiplier(null, item, "HarvestYield") *
+            this.talentMultiplier(null, item, "Yield");
+          node = { kind: "raw", item, qty: 1, totalCalories: baseCost * yieldFactor };
         } else {
           // Sticky overrides: respect the user's choice even if it would
           // produce a non-optimal path. If they haven't chosen, pick the
@@ -130,9 +226,17 @@ export class Resolver {
     }
     const outQty =
       recipe.outputs.find((o) => o.item === producedItem)?.qty ?? 1;
-    // Apply the labor-skill multiplier. At level 0 (default) every skill
-    // multiplier is 1.0, so this is a no-op until the user moves a slider.
-    const labor = (recipe.labor ?? 0) * this.skillMultiplier(recipe.laborSkill);
+    // Apply the labor-skill multiplier plus any LaborCost talents whose
+    // cause filters match this recipe. Yield-side talents also boost the
+    // effective output (more units per craft), shrinking per-unit cost.
+    const labor =
+      (recipe.labor ?? 0) *
+      this.skillMultiplier(recipe.laborSkill) *
+      this.talentMultiplier(recipe, producedItem, "LaborCost");
+    const ingFactor = this.talentMultiplier(recipe, producedItem, "ResourceCost");
+    const yieldFactor =
+      this.talentMultiplier(recipe, producedItem, "Yield") *
+      this.talentMultiplier(recipe, producedItem, "HarvestYield");
 
     // Children are built at PER-UNIT-OUTPUT demand. If the recipe is
     // "2 wood -> 16 dowels", the Dowel unit node's child is "0.125 wood
@@ -142,7 +246,9 @@ export class Resolver {
     let ingredientTotal = 0;
 
     for (const ing of recipe.ingredients) {
-      const perUnitQty = ing.qty / outQty;
+      // ResourceCost talents shrink the actual ingredient demand at craft
+      // time; we propagate that to per-unit-output qty for child resolution.
+      const perUnitQty = (ing.qty * ingFactor) / outQty;
       const child =
         ing.kind === "type"
           ? this.resolveItem(ing.ref, perUnitQty)
@@ -152,7 +258,9 @@ export class Resolver {
     }
 
     const perUnitLabor = outQty > 0 ? labor / outQty : labor;
-    const perUnitTotal = perUnitLabor + ingredientTotal;
+    // Yield talents scale the effective output beyond `outQty`; per-unit
+    // labor + ingredient cost both shrink proportionally.
+    const perUnitTotal = (perUnitLabor + ingredientTotal) * yieldFactor;
 
     return {
       kind: "recipe",
