@@ -101,6 +101,17 @@ RE_SPECIES_RESOURCE = re.compile(
     r'new\s+Range\s*\(\s*([\d\.\-]+)f?\s*,\s*([\d\.\-]+)f?\s*\)\s*'
     r'(?:,\s*([\d\.\-]+)f?\s*)?\)'
 )
+# Tree felling parameter — `this.TreeHealth = 15f;` in a SetDefaultProperties
+# partial method (Organisms/Tree/*.cs). This is the trunk HP the player has
+# to chop through to fell the tree.
+RE_TREE_HEALTH = re.compile(r'this\.TreeHealth\s*=\s*([\d\.]+)f?')
+
+# Assumed axe damage per swing for the tree-cost model. Iron Axe (Damage =
+# 1.5f, tier 2) is the typical mid-tier tool a seller pricing in calorie
+# basis is using — Stone Axe (1.0f) and Steel Axe (2.0f) are equally valid
+# alternatives. 20 cal/swing is constant across every tier per the source.
+# So cal_per_hp = 20 / axe_damage.
+ASSUMED_AXE_DAMAGE = 1.5
 
 
 def _attribute_block_before(text: str, class_start: int) -> str:
@@ -190,20 +201,18 @@ def main() -> None:
                             "vitamins": float(nut_m.group(4)) if nut_m else None,
                         }
 
-    # Plant yields: scan AutoGen/Plant/*.cs for each species' ResourceList.
-    # We accumulate (sum of avg yields, count) per produced item across every
-    # species that drops it, then average at the end. Trees are tracked
-    # separately because their yield is per-tree (many swings to fell) rather
-    # than per-harvest-action — we surface their data but don't auto-fold it
-    # into the cal/unit default since we'd need block hardness to do that.
+    # Plant + tree yields: scan AutoGen/Plant/*.cs for each species'
+    # ResourceList. We accumulate (sum of avg yields, count) per produced
+    # item across every species that drops it. Trees track an additional
+    # `hpSum` so we can derive a felling cost per log (TreeHealth lives in
+    # the hand-written Organisms/Tree/*.cs partial, not in autogen).
     plant_yields: dict[str, dict[str, float]] = {}   # itemId -> {sum, count}
-    tree_yields: dict[str, dict[str, float]] = {}    # itemId -> {sum, count}
+    tree_yields: dict[str, dict[str, float]] = {}    # itemId -> {sum, count, hpSum}
+    organisms_tree = ROOT.parent / "Organisms" / "Tree"
     plant_dir = ROOT / "Plant"
     if plant_dir.is_dir():
         for path in sorted(plant_dir.glob("*.cs")):
             text = path.read_text(encoding="utf-8-sig")
-            # Determine kind from base class. TreeSpecies → tree;
-            # PlantSpecies → plant. Anything else we skip.
             species_kind = None
             for sm in RE_SPECIES_CLASS.finditer(text):
                 base = sm.group(2)
@@ -215,6 +224,17 @@ def main() -> None:
                     break
             if species_kind is None:
                 continue
+            # For trees, pick up TreeHealth from the matching hand-written
+            # file (same filename, in __core__/Organisms/Tree/). Most tree
+            # species override the TreeSpecies default of 3.
+            tree_health: float | None = None
+            if species_kind == "tree":
+                hand_path = organisms_tree / path.name
+                if hand_path.exists():
+                    hand_text = hand_path.read_text(encoding="utf-8-sig")
+                    hm = RE_TREE_HEALTH.search(hand_text)
+                    if hm:
+                        tree_health = float(hm.group(1))
             bucket = tree_yields if species_kind == "tree" else plant_yields
             for rm in RE_SPECIES_RESOURCE.finditer(text):
                 item = rm.group(1)
@@ -222,21 +242,38 @@ def main() -> None:
                 hi = float(rm.group(3))
                 freq = float(rm.group(4)) if rm.group(4) else 1.0
                 avg = ((lo + hi) / 2.0) * freq
-                entry = bucket.setdefault(item, {"sum": 0.0, "count": 0.0})
+                entry = bucket.setdefault(
+                    item, {"sum": 0.0, "count": 0.0, "hpSum": 0.0},
+                )
                 entry["sum"] += avg
                 entry["count"] += 1
+                if species_kind == "tree" and tree_health is not None:
+                    entry["hpSum"] += tree_health
 
-    # Default raw cost per item = 20 / avg_yield for plant-harvested items.
-    # 20 = baseline cal/swing across every Eco harvesting tool. Trees are
-    # left at the global default since per-log cost depends on tree HP +
-    # axe damage, which the autogen doesn't expose.
+    # Default raw cost per item:
+    #   - Plant-harvested: 20 cal/swing / avg yield per harvest action.
+    #   - Tree-felled: (avg TreeHealth × 20 / ASSUMED_AXE_DAMAGE) / avg yield.
+    #     Felling a tree costs (HP / damage) swings × 20 cal each, then drops
+    #     the ResourceList yield of logs on the ground. We assume Iron Axe
+    #     damage (1.5) — a defensible middle-of-the-progression baseline that
+    #     the seller can override per-item if they're using a different tier.
     default_raw_costs: dict[str, float] = {}
+    cal_per_hp = 20.0 / ASSUMED_AXE_DAMAGE
     for item, agg in plant_yields.items():
         if agg["count"] == 0:
             continue
         avg = agg["sum"] / agg["count"]
         if avg > 0:
             default_raw_costs[item] = round(20.0 / avg, 4)
+    for item, agg in tree_yields.items():
+        if agg["count"] == 0 or agg["sum"] == 0:
+            continue
+        if agg["hpSum"] == 0:
+            continue  # tree species without an HP override — skip
+        avg_yield = agg["sum"] / agg["count"]
+        avg_hp = agg["hpSum"] / agg["count"]
+        if avg_yield > 0:
+            default_raw_costs[item] = round(avg_hp * cal_per_hp / avg_yield, 4)
 
     # Second pass: extract skill multiplier tables from Tech/*.cs. Each
     # specialty Skill class declares a MultiplicativeStrategy array of
@@ -306,9 +343,11 @@ def main() -> None:
     print(f"Distinct tags: {len(tag_to_items)}")
     print(f"Food items with nutrition: {len(food)}")
     print(f"Skills with multiplier tables: {len(skills)}")
-    print(f"Plant yields tracked: {len(plant_yields)} items "
-          f"-> {len(default_raw_costs)} default cal/unit overrides")
-    print(f"Tree yields tracked: {len(tree_yields)} items (not auto-folded)")
+    plant_overrides = sum(1 for item in plant_yields if item in default_raw_costs)
+    tree_overrides = sum(1 for item in tree_yields if item in default_raw_costs)
+    print(f"Plant yields tracked: {len(plant_yields)} items -> {plant_overrides} defaults")
+    print(f"Tree yields tracked: {len(tree_yields)} items -> {tree_overrides} defaults")
+    print(f"  (tree model: TreeHealth × {20/ASSUMED_AXE_DAMAGE:.1f} cal/HP / avg yield)")
     print()
 
     # Report coverage of the recipe-ingredient tags we care about.

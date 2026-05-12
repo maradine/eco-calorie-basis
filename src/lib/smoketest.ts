@@ -31,25 +31,27 @@ console.log("=== Defaults (no overrides) — alphabetical-first ===");
 {
   const r = new Resolver(data);
   // BoardItem producers sorted alphabetically: Board, Boards, ParticleBoards, SawBoards
-  // Default = Board: 25 labor + 1 wood (20 raw) = 45 cal.
+  // Default = Board: 25 labor + 1 wood (BirchLog @ 5.33 cal/log, derived
+  // from TreeHealth/yield) ≈ 30 cal.
   const board = r.resolveItem("BoardItem", 1);
-  check("Board (default=Board recipe)", Math.round(board.totalCalories), 45);
+  check("Board (default=Board recipe)", Math.round(board.totalCalories), 30);
 
-  // Dowel: one producer; 40 labor + 2 wood / 16 outputs = 5.
+  // Dowel: 40 labor + 2 wood (≈10.7) / 16 outputs ≈ 3 cal.
   const dowel = r.resolveItem("DowelItem", 1);
-  check("Dowel", Math.round(dowel.totalCalories), 5);
+  check("Dowel", Math.round(dowel.totalCalories), 3);
 
-  // HewnLog: 20 + 2*5 + 2*20 = 70.
+  // HewnLog: 20 labor + 2 Dowel (≈6.3) + 2 Wood (≈10.7) ≈ 37.
   const hewn = r.resolveItem("HewnLogItem", 1);
-  check("HewnLog", Math.round(hewn.totalCalories), 70);
+  check("HewnLog", Math.round(hewn.totalCalories), 37);
 
   // HewnDresser with defaults:
   //   60 labor
-  // + 18 HewnLog (tag=HewnLog; alpha = HardwoodHewnLogItem, same cost 70 = 1260)
-  // + 6 WoodBoard (tag=WoodBoard; alpha = BoardItem = 45 = 270)
-  // = 60 + 1260 + 270 = 1590
+  // + 18 HewnLog (HardwoodHewnLog ≈ 37 = 666)
+  // + 6 WoodBoard (BoardItem ≈ 30 = 180)
+  // + 1 Dowel (≈ 3)
+  // = ≈ 908 (rounding stacks up across the tree)
   const dresser = r.resolveItem("HewnDresserItem", 1);
-  check("HewnDresser", Math.round(dresser.totalCalories), 1590);
+  check("HewnDresser", Math.round(dresser.totalCalories), 908);
 }
 
 console.log("\n=== Sticky override: pin BoardItem recipe to SawBoards ===");
@@ -58,8 +60,8 @@ console.log("\n=== Sticky override: pin BoardItem recipe to SawBoards ===");
     choices: { "item:BoardItem": "SawBoards" },
   });
   const board = r.resolveItem("BoardItem", 1);
-  // SawBoards: 20 labor + 2 wood (40) = 60 / 3 outputs = 20 cal/board
-  check("Board via SawBoards", Math.round(board.totalCalories), 20);
+  // SawBoards: 20 labor + 2 wood (≈10.7) / 3 outputs ≈ 10 cal/board
+  check("Board via SawBoards", Math.round(board.totalCalories), 10);
 }
 
 console.log("\n=== Ambiguities surfaced structurally ===");
@@ -81,7 +83,7 @@ console.log("\n=== Quantity scaling ===");
 {
   const r = new Resolver(data);
   const five = r.resolveItem("HewnDresserItem", 5);
-  check("5× HewnDresser = 5 * 1590", Math.round(five.totalCalories), 7950);
+  check("5× HewnDresser = 5 * 908", Math.round(five.totalCalories), 4540);
 }
 
 console.log("\n=== Gatherable items default to gather ===");

@@ -100,8 +100,9 @@ they're asking "given my choices, what did this cost me in labor?"
 
 ```sh
 tsx src/lib/smoketest.ts       # regression tests — expected outputs
-                               # for HewnDresser (1590 cal), Dowel (5),
-                               # HewnLog (70), etc.
+                               # for HewnDresser (908 cal), Dowel (3),
+                               # HewnLog (37), etc. (post-yield-derived
+                               # defaults; pre-skills/talents reductions)
 npm run build                  # tsc -b && vite build — catches type
                                # errors before they reach the browser
 npm run dev                    # vite dev server at :5173
@@ -109,14 +110,19 @@ npm run dev                    # vite dev server at :5173
 
 ## Handy test items for the resolver
 
-- **HewnDresserItem** — classic middleweight, 1590 cal at defaults.
+- **HewnDresserItem** — classic middleweight, 908 cal at defaults.
   4-tier diagram. Good for smoke-testing ambiguity flow (HewnLog tag,
   WoodBoard tag, Wood tag, Hardwood tag all resolve).
-- **TruckItem** — stress test. 49 nodes post-dedup, 10 tiers, ~147k
-  cal. If wire routing or performance breaks anywhere, it's here.
+- **TruckItem** — stress test. 49 nodes post-dedup, 10 tiers. If wire
+  routing or performance breaks anywhere, it's here.
 - **BoardItem** — 4 producing recipes (Board, Boards, SawBoards,
   ParticleBoards). Good for testing the multi-producer dropdown.
-- **DowelItem** — single-producer but feeds HewnLog. Clean 5 cal/unit.
+- **DowelItem** — single-producer but feeds HewnLog. ~3 cal/unit.
+- **BoiledRiceItem** — food test. Surfaces nutrition in sticky banner
+  (210 food cal, 13 carbs, 0 fat, 2 protein, 0 vitamins) and uses a
+  plant-yield-derived raw (Rice = 8 cal/unit via 1-4 yield avg).
+- **MortaredStoneItem** — exercises gather-vs-recipe (Sand) and the
+  Masonry skill slider + talent checkboxes.
 
 ## Conventions
 
