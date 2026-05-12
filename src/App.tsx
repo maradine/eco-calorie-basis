@@ -15,6 +15,10 @@ export default function App() {
   const [qty, setQty] = useState<number>(1);
   const [choices, setChoices] = useState<Choices>({});
   const [rawCosts, setRawCosts] = useState<Record<string, number>>({});
+  // Skill level per specialty: skillLevels[skillId] = 0..maxLevel. Defaults
+  // to 0 (no labor reduction). Kept across target changes since it reflects
+  // the player, not the recipe.
+  const [skillLevels, setSkillLevels] = useState<Record<string, number>>({});
   const [view, setView] = useState<ViewMode>("diagram");
 
   useEffect(() => {
@@ -30,8 +34,8 @@ export default function App() {
 
   const resolver = useMemo(() => {
     if (!data) return null;
-    return new Resolver(data, { choices, rawCosts });
-  }, [data, choices, rawCosts]);
+    return new Resolver(data, { choices, rawCosts, skillLevels });
+  }, [data, choices, rawCosts, skillLevels]);
 
   const tree: TreeNode | null = useMemo(() => {
     if (!resolver || !selectedItem) return null;
@@ -42,6 +46,26 @@ export default function App() {
     if (!tree) return new Map<string, number>();
     return flattenRawInputs(tree);
   }, [tree]);
+
+  // Walk the resolved tree to find every laborSkill referenced by an
+  // in-use recipe — these are the skills we surface as sliders. Skill IDs
+  // present in data.skills (i.e. we have a multiplier table for them).
+  const skillsInTree = useMemo(() => {
+    const set = new Set<string>();
+    if (!tree || !data) return set;
+    const d = data; // narrowed local for closure
+    function visit(n: TreeNode) {
+      if (n.kind === "recipe" && n.recipeId) {
+        const r = d.recipes.find((x) => x.id === n.recipeId);
+        if (r?.laborSkill && d.skills[r.laborSkill]) {
+          set.add(r.laborSkill);
+        }
+      }
+      n.children?.forEach(visit);
+    }
+    visit(tree);
+    return set;
+  }, [tree, data]);
 
   const perUnit = tree ? tree.totalCalories / (tree.qty || 1) : 0;
 
@@ -87,10 +111,56 @@ export default function App() {
             onQtyChange={setQty}
           />
 
-          {tree && (
+          {tree && skillsInTree.size > 0 && (
             <>
               <div className="section-label">
                 <span className="section-label__num">02</span>
+                Skills
+              </div>
+              <div className="skills">
+                {[...skillsInTree]
+                  .sort((a, b) =>
+                    (data.skills[a]?.displayName ?? a).localeCompare(
+                      data.skills[b]?.displayName ?? b,
+                    ),
+                  )
+                  .map((skillId) => {
+                    const info = data.skills[skillId];
+                    const level = skillLevels[skillId] ?? 0;
+                    const mult = info.multipliers[level] ?? 1;
+                    return (
+                      <div key={skillId} className="skills__row">
+                        <div className="skills__name">{info.displayName}</div>
+                        <input
+                          type="range"
+                          min={0}
+                          max={info.maxLevel}
+                          value={level}
+                          className="skills__slider"
+                          onChange={(e) =>
+                            setSkillLevels({
+                              ...skillLevels,
+                              [skillId]: Number(e.target.value),
+                            })
+                          }
+                        />
+                        <div className="skills__level">Lvl {level}</div>
+                        <div className="skills__mult">
+                          ×{mult.toFixed(2)}
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </>
+          )}
+
+          {tree && (
+            <>
+              <div className="section-label">
+                <span className="section-label__num">
+                  {skillsInTree.size > 0 ? "03" : "02"}
+                </span>
                 Production
               </div>
 
@@ -125,7 +195,9 @@ export default function App() {
               {rawInputs.size > 0 && (
                 <>
                   <div className="section-label">
-                    <span className="section-label__num">03</span>
+                    <span className="section-label__num">
+                      {skillsInTree.size > 0 ? "04" : "03"}
+                    </span>
                     Raw Harvest Requirements
                   </div>
                   <FlatInputs inputs={rawInputs} data={data} />

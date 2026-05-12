@@ -35,6 +35,11 @@ def main():
             "outputs": r["outputs"],
             "skill": r["skill"],
             "skillLevel": r["skillLevel"],
+            # The skill that governs labor-cost reduction for this recipe.
+            # Usually matches `skill` but not always — recipes set this via
+            # CreateLaborInCaloriesValue(N, typeof(XSkill)). May be None if
+            # no skill modifies labor.
+            "laborSkill": r.get("laborSkill"),
             "table": r["table"],
         }
         for r in d["recipes"]
@@ -58,6 +63,7 @@ def main():
         "tagToItems": t["tagToItems"],
         "items": items,
         "food": t.get("food", {}),
+        "skills": t.get("skills", {}),
     }
     out = APP_ROOT / "public" / "eco-data.json"
     out.write_text(json.dumps(bundle))

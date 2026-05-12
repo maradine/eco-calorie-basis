@@ -20,8 +20,24 @@ export interface Recipe {
   outputs: Output[];
   skill: string | null;
   skillLevel: number;
+  // Skill whose level controls labor-cost reduction. Usually matches `skill`,
+  // but recipes can pin a different skill in their CreateLaborInCaloriesValue
+  // call. Null when no skill reduces labor.
+  laborSkill: string | null;
   table: string | null;
 }
+
+export interface SkillInfo {
+  displayName: string;
+  // Labor-cost multiplier indexed by level: multipliers[0] = 1 (no
+  // reduction), and higher levels carry smaller fractions.
+  multipliers: number[];
+  maxLevel: number;
+}
+
+// User-selected per-skill level. Defaults to 0 (no reduction) when an entry
+// is missing.
+export type SkillLevels = Record<string, number>;
 
 export interface FoodInfo {
   // Energy granted to the player on consumption.
@@ -40,6 +56,7 @@ export interface EcoData {
   tagToItems: Record<string, string[]>; // tag -> qualifying itemIds
   items: Record<string, string>; // itemId -> human-readable display name
   food: Record<string, FoodInfo>;       // itemId -> nutrition (food items only)
+  skills: Record<string, SkillInfo>;    // skillId -> labor-multiplier table
 }
 
 // Node kinds in the resolved breakdown tree.

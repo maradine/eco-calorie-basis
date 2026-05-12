@@ -1,4 +1,10 @@
-import type { Choices, EcoData, Recipe, TreeNode } from "./types";
+import type {
+  Choices,
+  EcoData,
+  Recipe,
+  SkillLevels,
+  TreeNode,
+} from "./types";
 
 // Default raw-harvest calorie floor. At level 0 every harvesting tool burns
 // ~20 calories per swing, and one swing = one block for appropriately-tiered
@@ -22,6 +28,7 @@ export const GATHER_CHOICE = "__gather__";
 export interface ResolveOptions {
   choices?: Choices;
   rawCosts?: Record<string, number>;
+  skillLevels?: SkillLevels;
 }
 
 export class Resolver {
@@ -30,11 +37,13 @@ export class Resolver {
   private stack: Set<string> = new Set();
   private choices: Choices;
   private rawCosts: Record<string, number>;
+  private skillLevels: SkillLevels;
 
   constructor(private data: EcoData, opts: ResolveOptions = {}) {
     this.recipesById = new Map(data.recipes.map((r) => [r.id, r]));
     this.choices = opts.choices ?? {};
     this.rawCosts = opts.rawCosts ?? {};
+    this.skillLevels = opts.skillLevels ?? {};
   }
 
   /**
@@ -44,6 +53,21 @@ export class Resolver {
   setChoices(choices: Choices) {
     this.choices = choices;
     this.memo.clear();
+  }
+
+  setSkillLevels(levels: SkillLevels) {
+    this.skillLevels = levels;
+    this.memo.clear();
+  }
+
+  /** Labor-cost multiplier for a recipe given its labor-governing skill. */
+  private skillMultiplier(skillId: string | null | undefined): number {
+    if (!skillId) return 1;
+    const level = this.skillLevels[skillId] ?? 0;
+    const info = this.data.skills?.[skillId];
+    if (!info) return 1;
+    const m = info.multipliers[level];
+    return typeof m === "number" ? m : 1;
   }
 
   /** Public entry point. Returns a scaled tree for `qty` of `item`. */
@@ -106,7 +130,9 @@ export class Resolver {
     }
     const outQty =
       recipe.outputs.find((o) => o.item === producedItem)?.qty ?? 1;
-    const labor = recipe.labor ?? 0;
+    // Apply the labor-skill multiplier. At level 0 (default) every skill
+    // multiplier is 1.0, so this is a no-op until the user moves a slider.
+    const labor = (recipe.labor ?? 0) * this.skillMultiplier(recipe.laborSkill);
 
     // Children are built at PER-UNIT-OUTPUT demand. If the recipe is
     // "2 wood -> 16 dowels", the Dowel unit node's child is "0.125 wood

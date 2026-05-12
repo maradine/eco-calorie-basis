@@ -57,6 +57,35 @@ RE_FOOD_NUTRITION = re.compile(
     r'Vitamins\s*=\s*(\d+(?:\.\d+)?)f?\s*\}'
 )
 
+# Skill class declarations in Tech/*.cs. The MultiplicativeStrategy array
+# is indexed by level and holds the labor multiplier at that level (1.0 at
+# level 0, lower at higher levels — e.g. Carpentry levels 1..7 give 0.8..0.5).
+RE_SKILL_CLASS = re.compile(
+    r'public\s+(?:partial\s+)?class\s+(\w+Skill)\s*:\s*Skill\b'
+)
+RE_MULTI_STRATEGY = re.compile(
+    r'new\s+MultiplicativeStrategy\s*\(\s*new\s+float\[\]\s*\{\s*([^}]+?)\s*\}\s*\)',
+    re.DOTALL,
+)
+RE_MAX_LEVEL_RETURN = re.compile(
+    r'MaxLevel\s*\{[^}]*?return\s+(\d+)'
+)
+RE_LOC_DISPLAY_NAME = re.compile(r'\[LocDisplayName\("([^"]+)"\)\]')
+
+
+def _eval_float_expr(s: str):
+    """Evaluate a C# float-literal expression like '1 - 0.2f' as a Python
+    float. Strips the 'f' suffix and refuses anything containing letters
+    (defensive — autogen files are trusted but eval is eval).
+    """
+    s = s.replace("f", "").strip()
+    if not s or not re.fullmatch(r'[\d\.\-\+\*\/\s\(\)]+', s):
+        return None
+    try:
+        return float(eval(s, {"__builtins__": {}}, {}))
+    except Exception:
+        return None
+
 
 def _attribute_block_before(text: str, class_start: int) -> str:
     """Walk backwards from `class_start` over the contiguous attribute stack."""
@@ -145,12 +174,46 @@ def main() -> None:
                             "vitamins": float(nut_m.group(4)) if nut_m else None,
                         }
 
+    # Second pass: extract skill multiplier tables from Tech/*.cs. Each
+    # specialty Skill class declares a MultiplicativeStrategy array of
+    # labor-cost factors indexed by level — what we surface in the UI as a
+    # per-skill slider.
+    skills: dict[str, dict] = {}
+    tech_dir = ROOT / "Tech"
+    if tech_dir.is_dir():
+        for path in sorted(tech_dir.glob("*.cs")):
+            text = path.read_text(encoding="utf-8-sig")
+            cls_m = RE_SKILL_CLASS.search(text)
+            if not cls_m:
+                continue
+            skill_id = cls_m.group(1)
+            attrs = _attribute_block_before(text, cls_m.start())
+            name_m = RE_LOC_DISPLAY_NAME.search(attrs)
+            display = name_m.group(1) if name_m else skill_id
+            multi_m = RE_MULTI_STRATEGY.search(text, cls_m.end())
+            if not multi_m:
+                continue
+            parts = [p.strip() for p in multi_m.group(1).split(",") if p.strip()]
+            multipliers = [_eval_float_expr(p) for p in parts]
+            if any(m is None for m in multipliers):
+                # Couldn't parse one of the entries — skip this skill so we
+                # don't ship partial data the UI can't trust.
+                continue
+            max_m = RE_MAX_LEVEL_RETURN.search(text, cls_m.end())
+            max_level = int(max_m.group(1)) if max_m else len(multipliers) - 1
+            skills[skill_id] = {
+                "displayName": display,
+                "multipliers": multipliers,
+                "maxLevel": max_level,
+            }
+
     # Convert sets to sorted lists for JSON
     out = {
         "tagToItems": {t: sorted(v) for t, v in sorted(tag_to_items.items())},
         "itemToTags": {i: sorted(v) for i, v in sorted(item_to_tags.items())},
         "itemFile": dict(sorted(item_file.items())),
         "food": dict(sorted(food.items())),
+        "skills": dict(sorted(skills.items())),
     }
     here = Path(__file__).parent
     (here / "tags.json").write_text(json.dumps(out, indent=2))
@@ -158,6 +221,7 @@ def main() -> None:
     print(f"Items found: {len(item_file)}")
     print(f"Distinct tags: {len(tag_to_items)}")
     print(f"Food items with nutrition: {len(food)}")
+    print(f"Skills with multiplier tables: {len(skills)}")
     print()
 
     # Report coverage of the recipe-ingredient tags we care about.
