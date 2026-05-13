@@ -146,13 +146,27 @@ export class Resolver {
   }
 
   /** Cause-filter check: a talent effect only applies when all of its
-   *  filters (skill, item tag, crafting station) are satisfied. Empty
-   *  filter lists mean "no restriction in this dimension". */
+   *  filters (skill, item tag, crafting station, recipe) are satisfied.
+   *  Empty filter lists mean "no restriction in this dimension". When
+   *  EVERY filter list is empty we skip the effect: an unscoped Yield
+   *  effect (no recipe, no skill, no tag, no station) would compound
+   *  across every recipe in the resolved tree and produce nonsense
+   *  numbers — that's almost always a parser miss, not a real talent. */
   private effectMatches(
     eff: TalentEffect,
     recipe: Recipe | null,
     item: string | null,
   ): boolean {
+    const hasAnyFilter =
+      (eff.skills?.length ?? 0) > 0 ||
+      (eff.tags?.length ?? 0) > 0 ||
+      (eff.stations?.length ?? 0) > 0 ||
+      (eff.recipes?.length ?? 0) > 0;
+    if (!hasAnyFilter) return false;
+
+    if (eff.recipes && eff.recipes.length > 0) {
+      if (!recipe?.id || !eff.recipes.includes(recipe.id)) return false;
+    }
     if (eff.skills.length > 0) {
       if (!recipe?.laborSkill || !eff.skills.includes(recipe.laborSkill)) {
         return false;

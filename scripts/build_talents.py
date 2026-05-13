@@ -64,6 +64,13 @@ RE_TYPE_SET = re.compile(
     r'(SkillTypes|CraftStationTypes)\s*=\s*new\s+HashSet<Type>\s*\{\s*([^}]*?)\s*\}',
     re.DOTALL,
 )
+# Some causes scope to specific recipes via `Recipes = new HashSet<...>`.
+# The set element is `typeof(XxxRecipe)`; we strip the `Recipe` suffix to
+# match how the resolver keys recipes in eco-data.json.
+RE_RECIPE_SET = re.compile(
+    r'Recipes\s*=\s*new\s+HashSet<(?:System\.)?Type>\s*\{\s*([^}]*?)\s*\}',
+    re.DOTALL,
+)
 RE_TAG_SET = re.compile(
     r'ItemTags\s*=\s*new\s+HashSet<string>\s*\{\s*([^}]*?)\s*\}', re.DOTALL,
 )
@@ -149,6 +156,15 @@ def parse_bonus(body: str) -> dict | None:
     if tm:
         tags.extend(_strip_string_set(tm.group(1)))
 
+    recipes: list[str] = []
+    rm = RE_RECIPE_SET.search(body)
+    if rm:
+        # Recipes are referenced as `typeof(XxxRecipe)` here; the bundle keys
+        # recipes by their `name:` argument, which is the class name minus
+        # the trailing "Recipe". This matches what build_bundle.py emits.
+        for cls in _strip_typeof_set(rm.group(1)):
+            recipes.append(cls[:-len("Recipe")] if cls.endswith("Recipe") else cls)
+
     return {
         "action": action,
         "kind": eff_kind,
@@ -158,6 +174,7 @@ def parse_bonus(body: str) -> dict | None:
         "skills": skills,
         "tags": tags,
         "stations": stations,
+        "recipes": recipes,
     }
 
 

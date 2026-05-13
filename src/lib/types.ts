@@ -57,10 +57,14 @@ export interface TalentEffect {
   value: number;
   cap: number | null;
   lowerIsBetter: boolean;
-  // Cause filters — empty means "applies regardless of this dimension".
+  // Cause filters — empty means "no restriction in this dimension". When
+  // EVERY list is empty the effect is treated as filterless; the resolver
+  // skips such effects rather than apply globally, since an unscoped Yield
+  // would compound across every recipe in the tree.
   skills: string[];
   tags: string[];
   stations: string[];
+  recipes: string[];  // recipe ids the effect is scoped to (Mineral Baking → Quicklime)
 }
 
 export interface TalentInfo {
